@@ -122,6 +122,8 @@ details summary{cursor:pointer;font-weight:600}
 .card mark{background:transparent;color:var(--ink);border-bottom:2px solid var(--omr)}
 #vLoop[aria-pressed="true"]{background:var(--omr)}
 [hidden]{display:none!important}
+.vnav{display:grid;grid-template-columns:1fr auto 1fr;gap:8px}
+.vnav .btn{padding-inline:10px}
 .vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
 label.btn{display:inline-flex;align-items:center}
 @media (max-width:520px){.calc{gap:8px}.calc input{font-size:16px}.day{grid-template-columns:auto 44px minmax(0,1fr)}}
@@ -261,10 +263,17 @@ label.btn{display:inline-flex;align-items:center}
     </div>
     <div class="row" id="vFilters"></div>
     <div class="sheet card" id="vCard" tabindex="0" role="button" aria-label="카드 뒤집기"></div>
-    <div class="row" style="justify-content:center">
-      <button class="btn ghost" id="vUnknown">모르겠음</button>
-      <button class="btn" id="vKnown">알아요</button>
+    <div class="vnav">
+      <button class="btn ghost" id="vPrev" aria-label="이전 카드">◀ 이전</button>
+      <button class="btn ghost" id="vReplay">▶ 듣기</button>
+      <button class="btn ghost" id="vNext" aria-label="다음 카드">다음 ▶</button>
     </div>
+    <label class="row" for="vAuto" style="justify-content:center;font-size:14px"><input type="checkbox" id="vAuto"> 카드를 넘기면 자동으로 듣기</label>
+    <div class="row" style="justify-content:center">
+      <button class="btn ghost" id="vUnknown">모르겠음 → 다음</button>
+      <button class="btn" id="vKnown">알아요 → 다음</button>
+    </div>
+    <p class="score-line" style="text-align:center;margin:0">카드를 누르면 뜻이 보이고, 좌우로 밀면 넘어갑니다. 알아요/모르겠음은 표시하면서 넘깁니다.</p>
     <div class="score-line" id="vCount" style="text-align:center"></div>
     <div class="sheet stack">
       <div class="label">음성으로 듣기</div>
@@ -274,7 +283,6 @@ label.btn{display:inline-flex;align-items:center}
         <select id="vRate" class="sel" aria-label="단어 재생 속도"><option value="0.75">느리게</option><option value="0.9" selected>보통</option><option value="1.05">빠르게</option></select>
       </div>
       <p class="lead" style="margin:0;font-size:14px">카드마다 단어 → 동의어 → 예문 순서로 녹음되어 있습니다. 연속 듣기는 끝나면 다음 카드로 넘어갑니다. 출퇴근길에 틀어 두고 귀로 익히세요.</p>
-      <label class="row" for="vAuto" style="font-size:14px"><input type="checkbox" id="vAuto"> 카드를 넘길 때 단어 자동 재생</label>
       <label class="row" for="vKo" style="font-size:14px"><input type="checkbox" id="vKo"> 연속 듣기에서 한국어 뜻도 읽기</label>
       <div class="score-line" id="vStatus"></div>
     </div>
@@ -284,8 +292,9 @@ label.btn{display:inline-flex;align-items:center}
 <script>
 /* ---------- storage ---------- */
 const KEY='gtelp70-v1';
-let S={start:null,done:{},wrong:{},known:{},gres:{},vAuto:false,vKo:false,tab:'plan'};
+let S={start:null,done:{},wrong:{},known:{},gres:{},vAuto:true,vKo:false,tab:'plan'};
 try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(S,JSON.parse(raw));}catch(e){}
+if(!S.vAutoV2){S.vAuto=true;S.vAutoV2=1;}
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 function save(){S.ts=Date.now();saveLocal();schedulePush();}
 const $=s=>document.querySelector(s);
@@ -301,7 +310,7 @@ function showTab(t){
   document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
   stopAudio();
 }
-document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>{showTab(b.dataset.tab);});
+document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>{const t=b.dataset.tab,was=S.tab;showTab(t);if(t==='vocab'&&was!=='vocab'&&S.vAuto&&typeof vSayWord==='function')vSayWord();});
 
 /* ---------- score calc ---------- */
 function calc(){
@@ -1064,7 +1073,7 @@ const V=[
  ['adequate','충분한','sufficient','The room has adequate space for ten people.']
 ];
 let vMode='all',vList=[],vI=0,vFlip=false,vLooping=false;
-const vCur=()=>vList[vI%vList.length];
+const vCur=()=>vList[((vI%vList.length)+vList.length)%vList.length];
 const vRate=()=>+(($('#vRate')||{}).value||0.9);
 function vBuild(){
   const unk=V.filter(x=>!S.known[x[0]]).length;
@@ -1100,11 +1109,26 @@ function vMove(k){
   if(!vList.length)return;
   const wasLoop=vLooping;stopAudio();
   if(k!==null){S.known[vCur()[0]]=k;save();}
-  vI++;vFlip=false;vBuild();vRender();
+  vI=(vI+1)%vList.length;vFlip=false;vBuild();vRender();
   if(wasLoop){vLooping=true;vLoopBtn();vPlayLoop();}
   else if(S.vAuto)vSayWord();
 }
-$('#vCard').onclick=()=>{vFlip=!vFlip;vRender();};
+function vGo(d){
+  if(!vList.length)return;
+  const wasLoop=vLooping;stopAudio();
+  vI=((vI+d)%vList.length+vList.length)%vList.length;vFlip=false;vRender();
+  if(wasLoop){vLooping=true;vLoopBtn();vPlayLoop();}
+  else if(S.vAuto)vSayWord();
+}
+$('#vPrev').onclick=()=>vGo(-1);$('#vNext').onclick=()=>vGo(1);
+$('#vReplay').onclick=()=>{stopAudio();vSayWord();};
+let vTouch=null,vSwiped=false;
+$('#vCard').addEventListener('touchstart',e=>{const t=e.touches[0];vTouch=[t.clientX,t.clientY];vSwiped=false;},{passive:true});
+$('#vCard').addEventListener('touchend',e=>{if(!vTouch)return;const t=e.changedTouches[0],dx=t.clientX-vTouch[0],dy=t.clientY-vTouch[1];vTouch=null;
+  if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.5){vSwiped=true;setTimeout(()=>{vSwiped=false;},400);vGo(dx<0?1:-1);}});
+document.addEventListener('keydown',e=>{if($('#tab-vocab').hidden||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
+  if(e.key==='ArrowRight'){e.preventDefault();vGo(1);}else if(e.key==='ArrowLeft'){e.preventDefault();vGo(-1);}});
+$('#vCard').onclick=()=>{if(vSwiped){vSwiped=false;return;}vFlip=!vFlip;vRender();};
 $('#vCard').onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();vFlip=!vFlip;vRender();}};
 $('#vKnown').onclick=()=>vMove(true);$('#vUnknown').onclick=()=>vMove(false);
 $('#vSay').onclick=()=>{const was=vLooping;stopAudio();if(!was)vSayWord();};
