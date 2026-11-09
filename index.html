@@ -1,0 +1,1209 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#C9324A"><style>[hidden]{display:none!important}body{margin:0}</style></head><body>
+<title>지텔프 70 트레이너</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: a single OMR answer-sheet column — pink-red sheet rules, filled ink bubbles for choices, mono numerals for scores. */
+:root{
+  --paper:#F6F7F9; --sheet:#FFFFFF; --ink:#1A2130; --muted:#5F6B7E;
+  --omr:#C9324A; --omr-soft:#F7E3E7; --rule:#EBC7CF;
+  --ok:#1D7F55; --ok-soft:#DDF2E8; --bad:#C9324A; --bad-soft:#FBE5E8;
+  --f-display:"Black Han Sans","IBM Plex Sans KR",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#11141B; --sheet:#181D27; --ink:#E6E9EF; --muted:#9AA4B5;
+  --omr:#F0687C; --omr-soft:#3A1F27; --rule:#4A2C35;
+  --ok:#4CC08A; --ok-soft:#173528; --bad:#F0687C; --bad-soft:#3A1F27; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#11141B; --sheet:#181D27; --ink:#E6E9EF; --muted:#9AA4B5;
+  --omr:#F0687C; --omr-soft:#3A1F27; --rule:#4A2C35;
+  --ok:#4CC08A; --ok-soft:#173528; --bad:#F0687C; --bad-soft:#3A1F27; color-scheme:dark}
+
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.65}
+.wrap{max-width:780px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 60px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:3px solid var(--omr);padding-bottom:12px}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(28px,6vw,40px);line-height:1.05;margin:0;letter-spacing:-.5px}
+h1 b{color:var(--omr);font-weight:400}
+.sub{color:var(--muted);font-size:13px;margin:4px 0 0}
+.dday{font-family:var(--f-mono);font-size:13px;color:var(--muted);text-align:right}
+.dday strong{display:block;font-size:22px;color:var(--ink)}
+.dday .sync{display:block;font-size:11px;margin-top:2px}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;margin:14px 0 18px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--paper);z-index:5;padding-block:6px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+nav.tabs button{flex:0 0 auto;border:1.5px solid var(--rule);background:var(--sheet);color:var(--ink);font:500 14px var(--f-body);padding:7px 14px;border-radius:999px;cursor:pointer}
+nav.tabs button[aria-selected="true"]{background:var(--omr);border-color:var(--omr);color:#fff}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--omr);outline-offset:2px}
+h2{font-size:20px;margin:0 0 6px;text-wrap:balance}
+h3{font-size:15px;margin:0 0 6px}
+.lead{color:var(--muted);margin:0 0 16px;max-width:65ch}
+.sheet{background:var(--sheet);border:1px solid var(--rule);border-radius:6px;padding:18px}
+.stack{display:flex;flex-direction:column;gap:14px}
+.label{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--omr)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{border:1.5px solid var(--rule);background:transparent;color:var(--ink);font:500 13px var(--f-body);padding:5px 11px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--omr);background:var(--omr-soft);color:var(--omr)}
+.btn{border:none;background:var(--ink);color:var(--paper);font:600 14px var(--f-body);padding:9px 16px;border-radius:6px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--rule)}
+.btn:disabled{opacity:.4;cursor:default}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* score calc */
+.calc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.calc label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+.calc input{font:600 18px var(--f-mono);padding:6px 8px;border:1.5px solid var(--rule);border-radius:6px;background:var(--paper);color:var(--ink);width:100%;box-sizing:border-box}
+.calc .pct{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.total{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-top:12px}
+.total .big{font-family:var(--f-display);font-size:44px;line-height:1}
+.pill{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+
+/* plan */
+.week{border-top:2px solid var(--rule);padding-top:10px}
+.week h3 span{color:var(--muted);font-weight:400;font-size:13px}
+.day{display:grid;grid-template-columns:auto 52px minmax(0,1fr);gap:10px;align-items:start;padding:7px 0;border-bottom:1px dashed var(--rule)}
+.day:last-child{border-bottom:none}
+.day input{width:18px;height:18px;margin-top:3px;accent-color:var(--omr)}
+.day .d{font-family:var(--f-mono);font-size:13px;color:var(--muted);padding-top:1px}
+.day.today{background:var(--omr-soft);margin-inline:-8px;padding-inline:8px;border-radius:4px}
+.day.today .d{color:var(--omr);font-weight:600}
+.day.done .txt{color:var(--muted);text-decoration:line-through}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:0 6px;border-radius:3px;margin-right:6px;border:1px solid currentColor}
+.t-g{color:var(--omr)} .t-r{color:var(--ok)} .t-l{color:var(--muted)}
+.progress{height:8px;background:var(--omr-soft);border-radius:4px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--omr);width:0}
+
+/* question / OMR */
+.q{display:flex;flex-direction:column;gap:10px}
+.qhead{display:flex;justify-content:space-between;gap:10px;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.stem{font-size:17px;line-height:1.6}
+.stem u{text-decoration:none;border-bottom:2px solid var(--ink);padding:0 14px}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{display:flex;gap:10px;align-items:center;text-align:left;width:100%;background:transparent;border:1px solid transparent;border-radius:6px;padding:6px 8px;color:var(--ink);font:15px var(--f-body);cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--rule)}
+.bub{flex:0 0 26px;height:26px;border-radius:50%;border:1.5px solid var(--omr);color:var(--omr);display:grid;place-items:center;font:600 12px var(--f-mono)}
+.opt.picked .bub{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.opt.right{background:var(--ok-soft)} .opt.right .bub{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.wrong{background:var(--bad-soft)} .opt.wrong .bub{background:var(--bad);border-color:var(--bad);color:#fff}
+.opt:disabled{cursor:default}
+.why{border-left:3px solid var(--omr);background:var(--omr-soft);padding:10px 12px;border-radius:0 6px 6px 0;font-size:14px}
+.why strong{color:var(--omr)}
+.tip{font-size:14px;background:var(--paper);border:1px dashed var(--rule);border-radius:6px;padding:10px 12px}
+.tip b{color:var(--omr)}
+.score-line{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+
+/* listening */
+.player{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.player select{font:14px var(--f-body);padding:7px;border-radius:6px;border:1.5px solid var(--rule);background:var(--sheet);color:var(--ink)}
+.script{font-size:14px;background:var(--paper);border-radius:6px;padding:12px;max-height:280px;overflow:auto}
+.script p{margin:0 0 6px}
+.script b{font-family:var(--f-mono);color:var(--omr)}
+.passage{font-size:15px;line-height:1.8;background:var(--paper);border-radius:6px;padding:14px 16px}
+.passage p{margin:0 0 10px;max-width:68ch}
+.passage mark{background:transparent;border-bottom:2px solid var(--omr);color:inherit}
+
+/* vocab */
+.card{min-height:170px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;cursor:pointer;user-select:none}
+.card .w{font-family:var(--f-mono);font-size:30px;font-weight:600}
+.card .m{font-size:16px}
+.card .s{font-family:var(--f-mono);color:var(--omr);font-size:17px}
+.card .hint{font-size:12px;color:var(--muted)}
+.cheat{width:100%;border-collapse:collapse;font-size:14px}
+.cheat th,.cheat td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--rule);vertical-align:top}
+.cheat th{font-size:12px;color:var(--muted);font-weight:500}
+.tablebox{overflow-x:auto}
+details summary{cursor:pointer;font-weight:600}
+.sel{font:14px var(--f-body);padding:7px 8px;border-radius:6px;border:1.5px solid var(--rule);background:var(--sheet);color:var(--ink);max-width:100%}
+.card .ex{font-size:15px;max-width:52ch;color:var(--muted);margin-top:4px}
+.card mark{background:transparent;color:var(--ink);border-bottom:2px solid var(--omr)}
+#vLoop[aria-pressed="true"]{background:var(--omr)}
+[hidden]{display:none!important}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+label.btn{display:inline-flex;align-items:center}
+@media (max-width:520px){.calc{gap:8px}.calc input{font-size:16px}.day{grid-template-columns:auto 44px minmax(0,1fr)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>지텔프 <b>70</b> 트레이너</h1>
+      <p class="sub">Level 2 · 하루 60분 · 4주 복귀 플랜</p>
+    </div>
+    <div class="dday"><strong id="dayNow">Day 1</strong><span id="dayInfo">/ 28일 플랜</span><span class="sync" id="syncStat">이 기기에만 저장</span></div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="plan">플랜</button>
+    <button role="tab" data-tab="grammar">문법</button>
+    <button role="tab" data-tab="listen">청취</button>
+    <button role="tab" data-tab="read">독해</button>
+    <button role="tab" data-tab="vocab">단어</button>
+  </nav>
+
+  <!-- PLAN -->
+  <section id="tab-plan" class="stack" hidden>
+    <div class="sheet stack">
+      <div>
+        <div class="label">목표 점수 계산기</div>
+        <h2>세 영역 평균이 70이면 합격</h2>
+        <p class="lead">각 영역은 100점 환산 후 평균. 맞힐 개수를 넣어 보세요. 권장 배분은 문법 24 · 청취 12 · 독해 21입니다.</p>
+      </div>
+      <div class="calc">
+        <label for="cg">문법 /26<input id="cg" type="number" min="0" max="26" value="24"><span class="pct" id="pg"></span></label>
+        <label for="cl">청취 /26<input id="cl" type="number" min="0" max="26" value="12"><span class="pct" id="pl"></span></label>
+        <label for="cr">독해·어휘 /28<input id="cr" type="number" min="0" max="28" value="21"><span class="pct" id="pr"></span></label>
+      </div>
+      <div class="total"><span class="big mono" id="avg">71</span><span id="avgPill" class="pill ok">목표 달성</span></div>
+    </div>
+
+    <div class="sheet stack">
+      <div class="row" style="justify-content:space-between">
+        <div><div class="label">28일 플랜</div><h2>오늘 할 일에 체크</h2></div>
+        <label class="row" for="startDate" style="font-size:13px;color:var(--muted)">시작일 <input id="startDate" type="date" style="font:14px var(--f-mono);padding:4px 6px;border:1.5px solid var(--rule);border-radius:6px;background:var(--paper);color:var(--ink)"></label>
+      </div>
+      <div class="progress"><i id="planBar"></i></div>
+      <div class="score-line" id="planCount"></div>
+      <div id="planList" class="stack"></div>
+    </div>
+    <div class="sheet stack">
+      <div>
+        <div class="label">기록 백업</div>
+        <h2>내보내기와 가져오기</h2>
+        <p class="lead">진도, 오답노트, 외운 단어, 세트 점수를 파일로 저장합니다. 저장한 파일이나 복사한 내용을 가져오면 지금 기록과 합쳐집니다.</p>
+      </div>
+      <div class="row">
+        <button class="btn" id="bExport">기록 내보내기</button>
+        <label class="btn ghost" for="bImport">파일에서 가져오기</label>
+        <input type="file" id="bImport" accept=".json,application/json,text/plain" class="vh">
+        <button class="btn ghost" id="bPasteBtn">붙여넣어 가져오기</button>
+      </div>
+      <div class="score-line" id="bStat"></div>
+      <div id="bFallback" class="stack" hidden>
+        <textarea id="bText" rows="4" aria-label="기록 내용" style="width:100%;box-sizing:border-box;font:12px var(--f-mono);border:1.5px solid var(--rule);border-radius:6px;background:var(--paper);color:var(--ink);padding:8px"></textarea>
+        <div class="row"><button class="btn ghost" id="bCopy">복사</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GRAMMAR -->
+  <section id="tab-grammar" class="stack" hidden>
+    <div>
+      <div class="label">문법 26문항 · 목표 24개+</div>
+      <h2>하루 한 세트</h2>
+      <p class="lead">Day 1~40 세트는 실제 시험 비율(시제 6 · 가정법 6 · 준동사 6 · 조동사·당위 4 · 연결어 2 · 관계사 2)로 날마다 다르게 나옵니다. 어느 세트에서 틀리든 오답노트에 모이고, 오답노트에서 맞히면 빠집니다.</p>
+    </div>
+    <div class="row" id="gFilters"></div>
+    <div class="sheet" id="gBox"></div>
+    <details class="sheet">
+      <summary>유형별 정답 단서 요약표</summary>
+      <div class="tablebox" style="margin-top:10px">
+        <table class="cheat">
+          <thead><tr><th>유형 (문항 수)</th><th>보이면</th><th>정답</th></tr></thead>
+          <tbody>
+            <tr><td>시제 (6)</td><td>now, right now, at the moment, currently</td><td>현재진행 am/is/are -ing</td></tr>
+            <tr><td></td><td>when + 과거, at that time, last ~</td><td>과거진행 was/were -ing</td></tr>
+            <tr><td></td><td>when/if + 현재, next ~, tomorrow</td><td>미래진행 will be -ing</td></tr>
+            <tr><td></td><td>since ~, for ~ + now/lately</td><td>현재완료진행 have been -ing</td></tr>
+            <tr><td></td><td>before/when + 과거 + for ~</td><td>과거완료진행 had been -ing</td></tr>
+            <tr><td></td><td>by the time + 현재, by + 미래시점 + for ~</td><td>미래완료진행 will have been -ing</td></tr>
+            <tr><td>가정법 (6)</td><td>If + 과거동사 / were</td><td>would + 동사원형</td></tr>
+            <tr><td></td><td>If + had p.p. / Had + 주어 + p.p.</td><td>would have p.p.</td></tr>
+            <tr><td>당위 (2~3)</td><td>recommend, suggest, insist, require / essential, vital, important that</td><td>주어 + 동사원형</td></tr>
+            <tr><td>조동사 (2)</td><td>의무·능력·추측 문맥</td><td>must / can / may 해석으로</td></tr>
+            <tr><td>준동사 (6)</td><td>enjoy, avoid, consider, mind, keep, suggest</td><td>-ing</td></tr>
+            <tr><td></td><td>decide, hope, want, plan, aim, agree, refuse</td><td>to + 동사원형</td></tr>
+            <tr><td></td><td>보기에 having p.p. / to have p.p.</td><td>거의 항상 오답</td></tr>
+            <tr><td>연결어 (2)</td><td>앞뒤 문장 관계</td><td>역접 However · 결과 Therefore · 추가 Moreover</td></tr>
+            <tr><td>관계사 (2)</td><td>콤마 뒤 사물 / 사람 / 소유</td><td>which / who / whose (콤마 뒤 that 불가)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+  </section>
+
+  <!-- LISTEN -->
+  <section id="tab-listen" class="stack" hidden>
+    <div>
+      <div class="label">청취 26문항 · 목표 12개+</div>
+      <h2>질문 먼저, 본문은 키워드만</h2>
+      <p class="lead">8개 지문, 파트별 2개씩입니다. 시험지에는 보기만 있고 질문은 음성으로 나옵니다. 질문을 들으며 의문사와 핵심 명사를 시험지 여백에 적는 연습을 하세요. 브라우저 음성(TTS)으로 재생합니다.</p>
+    </div>
+    <div class="row" id="lFilters"></div>
+    <div class="sheet stack" id="lBox"></div>
+  </section>
+
+  <!-- READ -->
+  <section id="tab-read" class="stack" hidden>
+    <div>
+      <div class="label">독해·어휘 28문항 · 목표 21개+</div>
+      <h2>파트별 지문 연습</h2>
+      <p class="lead">질문의 키워드를 먼저 잡고 본문에서 같은 단어 또는 바뀐 표현(패러프레이즈)을 찾습니다. 문제 순서는 거의 본문 순서를 따릅니다. 밑줄 친 단어는 어휘 문제입니다.</p>
+    </div>
+    <div class="row" id="rFilters"></div>
+    <div class="tip" id="rTip"></div>
+    <div class="sheet stack">
+      <div class="passage" id="passage"></div>
+      <div id="rBox" class="stack"></div>
+    </div>
+  </section>
+
+  <!-- VOCAB -->
+  <section id="tab-vocab" class="stack" hidden>
+    <div>
+      <div class="label">어휘 8문항 대비</div>
+      <h2>동의어 카드</h2>
+      <p class="lead">어휘 문제는 사전 뜻이 아니라 문맥상 뜻을 묻습니다. 카드에서 뜻과 시험에 자주 나오는 바꿔쓰기 표현을 함께 외우세요.</p>
+    </div>
+    <div class="row" id="vFilters"></div>
+    <div class="sheet card" id="vCard" tabindex="0" role="button" aria-label="카드 뒤집기"></div>
+    <div class="row" style="justify-content:center">
+      <button class="btn ghost" id="vUnknown">모르겠음</button>
+      <button class="btn" id="vKnown">알아요</button>
+    </div>
+    <div class="score-line" id="vCount" style="text-align:center"></div>
+    <div class="sheet stack">
+      <div class="label">음성으로 듣기</div>
+      <div class="row">
+        <button class="btn ghost" id="vSay">▶ 이 카드 듣기</button>
+        <button class="btn" id="vLoop" aria-pressed="false">▶ 연속 듣기</button>
+        <select id="vRate" class="sel" aria-label="단어 재생 속도"><option value="0.75">느리게</option><option value="0.9" selected>보통</option><option value="1.05">빠르게</option></select>
+      </div>
+      <p class="lead" style="margin:0;font-size:14px">카드마다 단어 → 동의어 → 예문 순서로 녹음되어 있습니다. 연속 듣기는 끝나면 다음 카드로 넘어갑니다. 출퇴근길에 틀어 두고 귀로 익히세요.</p>
+      <label class="row" for="vAuto" style="font-size:14px"><input type="checkbox" id="vAuto"> 카드를 넘길 때 단어 자동 재생</label>
+      <label class="row" for="vKo" style="font-size:14px"><input type="checkbox" id="vKo"> 연속 듣기에서 한국어 뜻도 읽기</label>
+      <div class="score-line" id="vStatus"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ---------- storage ---------- */
+const KEY='gtelp70-v1';
+let S={start:null,done:{},wrong:{},known:{},gres:{},vAuto:false,vKo:false,tab:'plan'};
+try{const raw=localStorage.getItem(KEY);if(raw)S=Object.assign(S,JSON.parse(raw));}catch(e){}
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function save(){S.ts=Date.now();saveLocal();schedulePush();}
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const L='abcd';
+
+/* ---------- tabs ---------- */
+const TABS=['plan','grammar','listen','read','vocab'];
+function showTab(t){
+  if(!TABS.includes(t))t='plan';
+  S.tab=t;saveLocal();
+  TABS.forEach(x=>{$('#tab-'+x).hidden=x!==t;});
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
+  stopAudio();
+}
+document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>{showTab(b.dataset.tab);});
+
+/* ---------- score calc ---------- */
+function calc(){
+  const g=+$('#cg').value||0,l=+$('#cl').value||0,r=+$('#cr').value||0;
+  const pg=g/26*100,pl=l/26*100,pr=r/28*100,avg=(pg+pl+pr)/3;
+  $('#pg').textContent=pg.toFixed(0)+'점';$('#pl').textContent=pl.toFixed(0)+'점';$('#pr').textContent=pr.toFixed(0)+'점';
+  $('#avg').textContent=avg.toFixed(1);
+  const p=$('#avgPill');
+  if(avg>=70){p.className='pill ok';p.textContent='목표 달성';}
+  else{p.className='pill bad';p.textContent=(70-avg).toFixed(1)+'점 부족';}
+}
+['#cg','#cl','#cr'].forEach(id=>$(id).addEventListener('input',calc));
+
+/* ---------- plan ---------- */
+const WEEKS=[
+ {t:'1주차',s:'문법 복구 (켈리 복습)',days:[
+  ['g','진단: 문법 탭 26문항 타이머 없이 풀고, 틀린 유형 확인'],
+  ['g','켈리 시제 강의 1.5~2배속 복습 + 요약표 시제 6줄 암기'],
+  ['g','켈리 가정법·당위성 복습 + 문법 탭 가정법/조동사 드릴'],
+  ['g','준동사: -ing 동사 / to 동사 리스트 암기 + 준동사 드릴'],
+  ['g','연결어·관계사 복습 + 기출 문법 26문항 1세트 (20분)'],
+  ['g','기출 문법 26문항 1세트를 15분 안에 + 오답 원인 한 줄씩 정리'],
+  ['r','문법 26문항 1세트 + 독해 Part 1 한 지문 맛보기']]},
+ {t:'2주차',s:'독해 유형 + 문법 유지',days:[
+  ['r','문법 13문항(10분) + 독해 Part 1 인물 2지문 + 단어 카드'],
+  ['r','문법 13문항 + Part 2 잡지기사 2지문 (주제·이유 문제 집중)'],
+  ['r','문법 13문항 + Part 3 백과사전 2지문 (수치·정의 문제)'],
+  ['r','문법 13문항 + Part 4 비즈니스 편지 2지문 (목적·요청 문제)'],
+  ['r','어휘 문제만 모아 풀기: 문장 넣어 보고 자연스러운 쪽 고르기'],
+  ['r','문법 26 + 독해 4지문 연속 (60분, 실전 순서대로)'],
+  ['r','오답노트 복습 + 독해에서 놓친 패러프레이즈 표현 정리']]},
+ {t:'3주차',s:'청취 최소 전략 + 독해 실전',days:[
+  ['l','청취 탭: 질문 듣고 키워드 메모하는 연습 (Part 1 대화)'],
+  ['l','기출 청취 Part 1·3 대화 + 스크립트로 놓친 문장 확인'],
+  ['l','기출 청취 Part 2·4 발표 + first/second/finally 신호어 따라가기'],
+  ['r','문법 26 + 독해 2지문 (40분)'],
+  ['l','청취 1세트 + 틀린 구간 쉐도잉 10분'],
+  ['r','문법 26 + 독해 4지문 하프 모의고사 (60분)'],
+  ['g','오답노트 전체 복습 + 문법 요약표 다시 암기']]},
+ {t:'4주차',s:'실전 감각 + 시험',days:[
+  ['r','주말 실전 모의고사 1회 (약 90분, 시간 되는 날로 이동)'],
+  ['g','모의고사 오답 분석: 문법 실수 0개 만들기'],
+  ['l','청취 1세트 + 독해 2지문'],
+  ['r','문법 26 (15분) + 독해 4지문 (40분) 시간 재고'],
+  ['l','청취 질문 메모 연습 + 단어 카드 모르는 것만'],
+  ['r','실전 모의고사 2회 또는 하프 모의고사'],
+  ['g','시험 전날: 요약표 + 준동사 리스트 + 오답노트만 30분']]}
+];
+const TAGN={g:'문법',r:'독해',l:'청취'};
+function todayStr(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10);}
+if(!S.start){S.start=todayStr();saveLocal();}
+function dayIndex(){
+  const a=new Date(S.start+'T00:00:00'),b=new Date(todayStr()+'T00:00:00');
+  return Math.floor((b-a)/86400000)+1;
+}
+function renderPlan(){
+  $('#startDate').value=S.start;
+  const di=dayIndex();
+  $('#dayNow').textContent=di<1?'시작 전':di>28?'플랜 완료':'Day '+di;
+  let n=0,html='';
+  WEEKS.forEach((w,wi)=>{
+    html+=`<div class="week"><h3>${w.t} <span>${w.s}</span></h3>`;
+    w.days.forEach((d,i)=>{
+      const k=wi*7+i+1,done=!!S.done[k];if(done)n++;
+      html+=`<label class="day${k===di?' today':''}${done?' done':''}" for="pd${k}">
+        <input type="checkbox" id="pd${k}" data-k="${k}"${done?' checked':''}>
+        <span class="d">D${String(k).padStart(2,'0')}</span>
+        <span class="txt"><span class="tag t-${d[0]}">${TAGN[d[0]]}</span>${esc(d[1])}</span></label>`;
+    });
+    html+='</div>';
+  });
+  $('#planList').innerHTML=html;
+  $('#planBar').style.width=(n/28*100)+'%';
+  $('#planCount').textContent=`완료 ${n} / 28일`;
+  document.querySelectorAll('#planList input').forEach(c=>c.onchange=()=>{S.done[c.dataset.k]=c.checked;save();renderPlan();});
+}
+$('#startDate').onchange=e=>{if(e.target.value){S.start=e.target.value;save();renderPlan();}};
+
+/* ---------- grammar data (26문항, 실제 유형 비율) ---------- */
+const GT={tense:'시제',cond:'가정법',modal:'조동사·당위',verbal:'준동사',conn:'연결어',rel:'관계사'};
+const G=[
+ {id:'t1',ty:'tense',q:'Right now, Jenna ___ a presentation for tomorrow\'s board meeting, so she can\'t take your call.',o:['prepares','is preparing','has prepared','will prepare'],a:1,w:'<strong>Right now</strong> → 현재진행. 단서 단어 하나로 끝나는 문제입니다.'},
+ {id:'t2',ty:'tense',q:'By the time the new manager arrives next month, the team ___ on the project for over a year.',o:['will have been working','has been working','had been working','will work'],a:0,w:'<strong>by the time + 현재동사(arrives)</strong> + <strong>for over a year</strong> → 미래완료진행.'},
+ {id:'t3',ty:'tense',q:'Mark ___ in the garden when the storm suddenly hit the town yesterday.',o:['works','has been working','was working','will be working'],a:2,w:'<strong>when + 과거(hit)</strong>, yesterday → 과거진행.'},
+ {id:'t4',ty:'tense',q:'Before she moved to Madrid last year, Sarah ___ Spanish for three years.',o:['has been studying','had been studying','is studying','will have studied'],a:1,w:'<strong>before + 과거(moved)</strong> + <strong>for three years</strong> → 과거보다 더 이전부터 이어진 일 = 과거완료진행.'},
+ {id:'t5',ty:'tense',q:'Since the factory opened in 2019, local residents ___ about the noise.',o:['complain','had been complaining','have been complaining','will complain'],a:2,w:'<strong>Since + 과거시점</strong> → 지금까지 계속 = 현재완료진행.'},
+ {id:'t6',ty:'tense',q:'When you arrive at our house tonight, we ___ dinner, so just come in.',o:['will be having','are having','have had','were having'],a:0,w:'<strong>When + 현재(arrive)</strong>, tonight → 미래 그 순간에 진행 중 = 미래진행. 시간 부사절의 현재형은 미래 의미입니다.'},
+ {id:'c1',ty:'cond',q:'If I had known about the traffic jam, I ___ home earlier.',o:['would leave','will leave','would have left','had left'],a:2,w:'<strong>If + had p.p.</strong> → <strong>would have p.p.</strong> (가정법 과거완료)'},
+ {id:'c2',ty:'cond',q:'If Tom were a few inches taller, he ___ the professional basketball team.',o:['would join','will join','would have joined','joins'],a:0,w:'<strong>If + were/과거동사</strong> → <strong>would + 동사원형</strong> (가정법 과거)'},
+ {id:'c3',ty:'cond',q:'Had the company invested in new technology, it ___ its competitors.',o:['would beat','would have beaten','will beat','beats'],a:1,w:'<strong>Had + 주어 + p.p.</strong>는 If가 생략된 도치 → would have p.p.'},
+ {id:'c4',ty:'cond',q:'If the city ___ more bike lanes, fewer people would drive to work.',o:['builds','has built','built','had built'],a:2,w:'주절이 <strong>would + 원형(would drive)</strong> → If절은 과거동사. 거꾸로도 나옵니다.'},
+ {id:'c5',ty:'cond',q:'Were I in your position, I ___ the job offer immediately.',o:['would accept','would have accepted','will accept','accepted'],a:0,w:'<strong>Were + 주어</strong> = If I were (도치) → would + 동사원형.'},
+ {id:'c6',ty:'cond',q:'If she had not missed the bus, she ___ late for the interview.',o:['would not be','would not have been','will not be','was not'],a:1,w:'<strong>If + had not p.p.</strong> → would not have p.p.'},
+ {id:'m1',ty:'modal',q:'The doctor recommended that the patient ___ salty food for a month.',o:['avoids','avoid','avoided','will avoid'],a:1,w:'<strong>recommend that</strong> → 주어 + 동사원형. 주어가 3인칭 단수여도 -s를 붙이지 않습니다.'},
+ {id:'m2',ty:'modal',q:'It is essential that every employee ___ the safety training before using the machines.',o:['completes','completed','complete','is completing'],a:2,w:'<strong>It is essential that</strong> → 동사원형. vital, important, necessary도 같습니다.'},
+ {id:'m3',ty:'modal',q:'You ___ wear a helmet when riding a motorcycle. It\'s the law.',o:['might','could','must','would'],a:2,w:'"It\'s the law" → 의무 = <strong>must</strong>. 조동사는 해석 문제입니다.'},
+ {id:'m4',ty:'modal',q:'Bats ___ find insects in complete darkness by using echolocation.',o:['can','must','should','shall'],a:0,w:'능력·가능 → <strong>can</strong>.'},
+ {id:'v1',ty:'verbal',q:'The manager decided ___ the meeting until next week.',o:['postponing','to postpone','having postponed','to have postponed'],a:1,w:'<strong>decide + to부정사</strong>. 완료형(having p.p., to have p.p.)은 지워 놓고 시작하세요.'},
+ {id:'v2',ty:'verbal',q:'Kevin enjoys ___ in the mountains on weekends.',o:['to hike','hiking','to have hiked','having hiked'],a:1,w:'<strong>enjoy + -ing</strong>.'},
+ {id:'v3',ty:'verbal',q:'The committee is considering ___ the annual festival to a larger venue.',o:['moving','to move','to be moving','having moved'],a:0,w:'<strong>consider + -ing</strong>.'},
+ {id:'v4',ty:'verbal',q:'Many students hope ___ a scholarship next semester.',o:['receiving','to receive','having received','to be receiving'],a:1,w:'<strong>hope + to부정사</strong>.'},
+ {id:'v5',ty:'verbal',q:'Please avoid ___ your phone while the lecture is in progress.',o:['to use','using','to have used','use'],a:1,w:'<strong>avoid + -ing</strong>.'},
+ {id:'v6',ty:'verbal',q:'The new policy aims ___ plastic waste in the city by 30 percent.',o:['reducing','to reduce','having reduced','to have reduced'],a:1,w:'<strong>aim + to부정사</strong>.'},
+ {id:'n1',ty:'conn',q:'The restaurant\'s food was excellent. ___, the service was so slow that many customers complained.',o:['Moreover','However','Therefore','For instance'],a:1,w:'좋다 → 나쁘다: 역접 <strong>However</strong>. 빈칸 앞뒤 한 문장씩만 해석하면 됩니다.'},
+ {id:'n2',ty:'conn',q:'Daniel trained every morning for six months. ___, he won the city marathon.',o:['As a result','In contrast','Otherwise','Meanwhile'],a:0,w:'원인 → 결과: <strong>As a result</strong>.'},
+ {id:'r1',ty:'rel',q:'The city museum, ___ was built in 1890, attracts thousands of visitors every year.',o:['that','which','where','who'],a:1,w:'콤마 뒤 + 사물 + 뒤에 주어 없음 → <strong>which</strong>. 콤마 뒤 that은 항상 오답.'},
+ {id:'r2',ty:'rel',q:'Dr. Lee, ___ research focuses on ocean pollution, will speak at the conference.',o:['who','whom','whose','which'],a:2,w:'뒤에 명사(research)가 바로 오고 "그의 연구" → 소유격 <strong>whose</strong>.'}
+];
+/* ---------- daily set generator ---------- */
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const pick=(r,a)=>a[Math.floor(r()*a.length)];
+function shuffle(r,a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function slice(bank,d,k,salt){const ord=shuffle(rng(salt),bank.map((_,i)=>i));return Array.from({length:k},(_,j)=>bank[ord[((d-1)*k+j)%bank.length]]);}
+function mk(r,ty,q,correct,dis,w){const o=shuffle(r,[correct,...dis]);return{ty,q,o,a:o.indexOf(correct),w};}
+
+/* 시제: [원형, -ing, p.p., 목적어/부사, 기간, 장기활동] */
+const ACT=[
+ ['work','working','worked','on the quarterly report','for three hours',false],
+ ['practice','practicing','practiced','the piano in the living room','for two hours',false],
+ ['watch','watching','watched','a documentary about whales','for an hour',false],
+ ['study','studying','studied','for the final exam','for five hours',false],
+ ['clean','cleaning','cleaned','the kitchen','for an hour',false],
+ ['repair','repairing','repaired','the old fence in the backyard','for two hours',false],
+ ['jog','jogging','jogged','around the lake','for 40 minutes',false],
+ ['cook','cooking','cooked','dinner for the guests','for three hours',false],
+ ['paint','painting','painted','the walls of the office','for six hours',false],
+ ['play','playing','played','tennis at the community center','for two hours',false],
+ ['wait','waiting','waited','for the bus downtown','for 30 minutes',false],
+ ['teach','teaching','taught','math at the local high school','for ten years',true],
+ ['volunteer','volunteering','volunteered','at the animal shelter','for five years',true],
+ ['research','researching','researched','renewable energy at the university','for eight years',true],
+ ['learn','learning','learned','Japanese at a language school','for two years',true],
+ ['work','working','worked','as a nurse at the city hospital','for seven years',true],
+ ['run','running','run','a small bakery downtown','for twelve years',true],
+ ['write','writing','written','a cookbook','for two years',true],
+ ['live','living','lived','in the same apartment','for fifteen years',true],
+ ['collect','collecting','collected','old coins','for twenty years',true]
+];
+const SUBJ=[['Emma',0],['Mr. Kim',0],['My brother',0],['Olivia',0],['Jason',0],['My aunt',0],['Ms. Lopez',0],['My parents',1],['The twins',1],['Our neighbors',1]];
+const TN={pr:'현재진행',pa:'과거진행',fu:'미래진행',prp:'현재완료진행',pap:'과거완료진행',fup:'미래완료진행'};
+const TKEYS=Object.keys(TN);
+function conj(k,pl,ing){return {pr:(pl?'are ':'is ')+ing,pa:(pl?'were ':'was ')+ing,fu:'will be '+ing,prp:(pl?'have':'has')+' been '+ing,pap:'had been '+ing,fup:'will have been '+ing}[k];}
+const TF={
+ pr:{s:[['Right now, {S} ___ {C}.','Right now'],['{S} ___ {C} at the moment, so please call back later.','at the moment']]},
+ pa:{s:[['{S} ___ {C} when the power went out last night.','when + 과거(went out)'],['At 9 p.m. yesterday, {S} ___ {C}.','At 9 p.m. yesterday'],['While I was talking on the phone, {S} ___ {C}.','While + 과거진행']]},
+ fu:{s:[['When you arrive tomorrow afternoon, {S} ___ {C}.','When + 현재(arrive) + tomorrow'],['At this time next Saturday, {S} ___ {C}.','At this time next Saturday']]},
+ prp:{s:[['{S} ___ {C} {D} now.','{D} + now'],['{S} ___ {C} since early this morning.','since early this morning']],
+      l:[['Since 2015, {S} ___ {C}.','Since 2015'],['{S} ___ {C} {D} now.','{D} + now']]},
+ pap:{s:[['{S} ___ {C} {D} when the fire alarm suddenly went off.','when + 과거(went off) + {D}'],['Before the guests finally arrived, {S} ___ {C} {D}.','Before + 과거(arrived) + {D}']],
+      l:[['Before moving to Canada last year, {S} ___ {C} {D}.','Before ~ last year + {D}'],['{S} ___ {C} {D} when the pandemic began in 2020.','when + 과거(began) + {D}']]},
+ fup:{s:[['By the time the guests arrive tonight, {S} ___ {C} {D}.','By the time + 현재(arrive) + {D}'],['By noon tomorrow, {S} ___ {C} {D}.','By noon tomorrow + {D}']],
+      l:[['By the end of next year, {S} ___ {C} {D}.','By the end of next year + {D}'],['By the time the new year begins, {S} ___ {C} {D}.','By the time + 현재(begins) + {D}']]}
+};
+function fillS(tpl,sb,a){const subj=tpl.startsWith('{S}')?sb[0]:sb[0].replace(/^(My|The|Our) /,m=>m.toLowerCase());return tpl.replace('{S}',subj).replace('{C}',a[3]).replace('{D}',a[4]);}
+
+/* 가정법: [문장, 원형, p.p.] */
+const P2=[
+ ['If Mina lived closer to her office, she ___ to work every day.','walk','walked'],
+ ['If I had a bigger kitchen, I ___ dinner parties more often.','host','hosted'],
+ ['If the museum were open on Mondays, more tourists ___ it.','visit','visited'],
+ ['If Daniel knew the answer, he ___ it with the class.','share','shared'],
+ ['If the store offered free delivery, I ___ my groceries online.','order','ordered'],
+ ['If we had enough money, we ___ a house near the beach.','buy','bought'],
+ ['If my laptop were faster, I ___ my work much sooner.','finish','finished'],
+ ['If Kevin spoke French, he ___ for the job in Paris.','apply','applied'],
+ ['If the weather were warmer, the children ___ in the park.','play','played'],
+ ['If I were the mayor, I ___ more parks in the city.','build','built'],
+ ['Were Sarah taller, she ___ the volleyball team.','join','joined'],
+ ['If the company hired more staff, employees ___ less overtime.','work','worked'],
+ ['If people recycled more, cities ___ less waste.','produce','produced'],
+ ['If Tom had a car, he ___ his grandparents every weekend.','visit','visited'],
+ ['Were the tickets cheaper, more fans ___ the concert.','attend','attended'],
+ ['If the library stayed open later, students ___ there after class.','study','studied'],
+ ['If Jenny saved more money, she ___ around Europe next summer.','travel','traveled'],
+ ['If the bus came more often, fewer people ___ to work.','drive','driven']
+];
+const P3=[
+ ['If I had known about the traffic, I ___ home earlier.','leave','left'],
+ ['If the team had practiced harder, it ___ the championship.','win','won'],
+ ['If Sam had set an alarm, he ___ the morning meeting on time.','attend','attended'],
+ ['Had the company invested in new technology, it ___ its competitors.','beat','beaten'],
+ ['If Emily had studied harder, she ___ the exam.','pass','passed'],
+ ['If we had booked earlier, we ___ cheaper tickets.','get','gotten'],
+ ['Had I seen the email, I ___ to it immediately.','reply','replied'],
+ ['If the city had built a seawall, the flood ___ less damage.','cause','caused'],
+ ['If Brian had accepted the job offer, he ___ to Singapore.','move','moved'],
+ ['If the bakery had advertised more, it ___ more customers.','attract','attracted'],
+ ['Had the driver slowed down, he ___ the accident.','avoid','avoided'],
+ ['If Lisa had brought an umbrella, she ___ dry.','stay','stayed'],
+ ['If the scientists had received more funding, they ___ the research sooner.','complete','completed'],
+ ['If I had listened to my mother, I ___ a warmer jacket.','wear','worn'],
+ ['Had they left the hotel earlier, they ___ the last train.','catch','caught'],
+ ['If Paul had checked the weather, he ___ the hiking trip.','cancel','canceled'],
+ ['If the museum had been open, we ___ the dinosaur exhibit.','see','seen'],
+ ['Had the manager explained the rules clearly, the staff ___ fewer mistakes.','make','made']
+];
+function condQ(r,x,t){
+  const [q,b,pp]=x;
+  if(t===2)return mk(r,'cond',q,'would '+b,['will '+b,'would have '+pp,'had '+pp],
+    q.startsWith('Were')?'<strong>Were + 주어</strong>는 If가 생략된 도치(= If ~ were) → would + 동사원형.':'<strong>If + 과거동사/were</strong> → <strong>would + 동사원형</strong> (가정법 과거).');
+  return mk(r,'cond',q,'would have '+pp,['would '+b,'will have '+pp,'had '+pp],
+    q.startsWith('Had')?'<strong>Had + 주어 + p.p.</strong>는 If가 생략된 도치 → would have p.p.':'<strong>If + had p.p.</strong> → <strong>would have p.p.</strong> (가정법 과거완료).');
+}
+
+/* 준동사 */
+const GER=[['enjoyed','enjoy'],['avoided','avoid'],['considered','consider'],['finished','finish'],['postponed','postpone'],['kept','keep'],['suggested','suggest'],['recommended','recommend'],['discussed','discuss'],['gave up','give up'],['didn\'t mind','mind']];
+const INF=[['decided','decide'],['hoped','hope'],['wanted','want'],['planned','plan'],['agreed','agree'],['refused','refuse'],['promised','promise'],['expected','expect'],['intended','intend'],['managed','manage'],['chose','choose'],['offered','offer'],['needed','need'],['failed','fail']];
+
+/* 당위 */
+const REQ=[['The manager insisted that','insist'],['The doctor recommended that','recommend'],['The instructor suggested that','suggest'],['The supervisor requested that','request'],['The school requires that','require'],['The director demanded that','demand'],['The committee proposed that','propose'],['It is essential that','essential'],['It is vital that','vital'],['It is important that','important'],['It is necessary that','necessary'],['It is crucial that','crucial'],['It is imperative that','imperative']];
+const SUBJ2=['every employee','each participant','the new intern','every visitor','each student','Jason','the team leader'];
+const ACT2=[['submit','submits','submitted','the report by Friday'],['wear','wears','wore','a helmet at all times'],['arrive','arrives','arrived','at least 30 minutes early'],['review','reviews','reviewed','the safety manual carefully'],['attend','attends','attended','the training session'],['bring','brings','brought','a photo ID'],['turn off','turns off','turned off','all mobile phones during the session'],['complete','completes','completed','the online survey'],['register','registers','registered','before the deadline'],['follow','follows','followed','the new safety guidelines'],['check in','checks in','checked in','at the front desk']];
+
+/* 조동사: [문장, 정답, 오답3, 해설] */
+const MB=[
+ ['You ___ wear a seat belt in the car. It is required by law.','must',['might','could','would'],'"required by law" → 의무 = must.'],
+ ['Penguins ___ fly, but they are excellent swimmers.','cannot',['must not','should not','will not'],'능력이 없음 → cannot. must not은 금지.'],
+ ['With enough practice, anyone ___ learn to ride a bicycle.','can',['must','should','shall'],'능력·가능 → can.'],
+ ['You look exhausted. You ___ take a short break.','should',['would','shall','will'],'조언 → should.'],
+ ['Cheetahs ___ run at speeds of more than 100 kilometers per hour.','can',['must','should','shall'],'능력 → can.'],
+ ['Students ___ submit their essays by Friday, or they will lose points.','must',['might','could','would'],'"or they will lose points" → 의무 = must.'],
+ ['If you have a high fever, you ___ see a doctor right away.','should',['would','might','shall'],'조언 → should.'],
+ ['Library members ___ borrow up to five books at a time.','can',['must','should','shall'],'허락·가능 → can.'],
+ ['When my grandfather was young, he ___ swim across the river easily.','could',['should','must','shall'],'과거의 능력 → could.'],
+ ['Smoking harms your lungs. You ___ quit as soon as possible.','should',['might','would','shall'],'조언·권고 → should.'],
+ ['Hummingbirds ___ fly backward, unlike most other birds.','can',['must','should','shall'],'능력 → can.'],
+ ['I am not sure, but the package ___ arrive tomorrow.','may',['must','shall','need'],'"not sure" → 약한 추측 = may.'],
+ ['All visitors ___ sign in at the front desk before entering the building.','must',['might','could','would'],'규칙·의무 → must.'],
+ ['Most plants ___ survive for long without sunlight.','cannot',['must not','should not','need not'],'불가능 → cannot.'],
+ ['The museum is free, so you ___ pay anything to enter.','don\'t have to',['must not','cannot','should not'],'"free" → 낼 필요 없음 = don\'t have to. must not은 금지.'],
+ ['We ___ leave now if we want to catch the last train.','must',['might','could','would'],'"if we want to catch" → 필요·의무 = must.']
+];
+
+/* 연결어: [문장, 정답, 오답3] */
+const CB=[
+ ['The new phone is expensive. ___, it has the best camera on the market.','However',['Therefore','For example','Similarly']],
+ ['Jake missed the bus. ___, he was late for work.','As a result',['In contrast','For instance','Otherwise']],
+ ['Exercise improves heart health. ___, it reduces stress.','Moreover',['However','Otherwise','Instead']],
+ ['You should leave now. ___, you will miss the train.','Otherwise',['Moreover','Therefore','Similarly']],
+ ['Many fruits are rich in vitamin C. ___, oranges and kiwis contain large amounts of it.','For example',['However','Otherwise','Meanwhile']],
+ ['Sarah wanted to study medicine. ___, she became a lawyer.','Instead',['Moreover','For instance','Therefore']],
+ ['The hotel was close to the beach. ___, the rooms were small and noisy.','On the other hand',['As a result','In addition','For example']],
+ ['The company\'s sales doubled last year. ___, it hired 50 new employees.','Consequently',['Nevertheless','Otherwise','In contrast']],
+ ['Dogs usually depend on their owners. ___, cats are more independent.','In contrast',['Therefore','For example','Moreover']],
+ ['The storm destroyed many houses. ___, no one was injured.','Nevertheless',['Therefore','Similarly','For instance']],
+ ['Please read the instructions carefully. ___, you may damage the machine.','Otherwise',['Moreover','Similarly','For example']],
+ ['The town has no hospital. ___, residents must drive an hour to see a doctor.','Therefore',['However','Meanwhile','For instance']],
+ ['Lisa is an excellent singer. ___, she plays three musical instruments.','In addition',['However','Otherwise','Instead']],
+ ['Tom was cooking dinner. ___, his wife was setting the table.','Meanwhile',['Therefore','Otherwise','For example']],
+ ['Some birds cannot fly. ___, penguins use their wings to swim instead.','For instance',['Otherwise','Therefore','Nevertheless']],
+ ['Ben had never cooked before. ___, his first dish was surprisingly delicious.','Even so',['As a result','For instance','Similarly']],
+ ['The road was covered with ice. ___, the driver slowed down.','Therefore',['However','Instead','Meanwhile']],
+ ['___ it was raining heavily, the soccer game continued.','Although',['Because','Unless','Once']],
+ ['The game was canceled ___ the field was flooded.','because',['although','unless','until']],
+ ['You cannot enter the building ___ you have an ID card.','unless',['because','although','since']],
+ ['Please wait here ___ the doctor calls your name.','until',['although','because','unless']],
+ ['___ the movie ended, everyone stood up and clapped.','As soon as',['Unless','Although','Even if']]
+];
+const CW={'However':'역접 (앞과 반대)','Nevertheless':'역접 (그럼에도 불구하고)','Even so':'역접 (그렇다 해도)','On the other hand':'대조 (반면에)','In contrast':'대조 (대조적으로)','Therefore':'결과 (그러므로)','As a result':'결과 (그 결과)','Consequently':'결과 (결과적으로)','Moreover':'추가 (게다가)','In addition':'추가 (게다가)','Otherwise':'"그렇지 않으면"','For example':'예시','For instance':'예시','Instead':'대신','Meanwhile':'동시에 (그동안)','Although':'양보 (~이지만)','because':'이유 (~때문에)','unless':'조건 (~하지 않으면)','until':'시간 (~할 때까지)','As soon as':'시간 (~하자마자)'};
+
+/* 관계사: [문장, 정답, 오답3] */
+const RB=[
+ ['The book, ___ was published in 1950, is still popular today.','which',['that','who','where']],
+ ['My uncle, ___ lives in Canada, is visiting us next week.','who',['which','whose','whom']],
+ ['The scientist ___ discovered the new species gave a lecture yesterday.','who',['which','whose','where']],
+ ['The café ___ we first met has closed down.','where',['which','who','when']],
+ ['Ms. Park, ___ son plays professional baseball, is my neighbor.','whose',['who','which','whom']],
+ ['2020 was the year ___ many people started working from home.','when',['where','which','who']],
+ ['The laptop ___ I bought last week is already broken.','that',['who','where','whose']],
+ ['The Amazon River, ___ flows through several countries, is home to thousands of species.','which',['that','who','where']],
+ ['The students ___ passed the test will receive certificates.','who',['which','whose','what']],
+ ['Leonardo da Vinci, ___ painted the Mona Lisa, was also an inventor.','who',['which','that','whose']],
+ ['The village ___ my grandmother grew up is near the sea.','where',['which','who','when']],
+ ['The company, ___ products are sold worldwide, was founded in 1985.','whose',['which','that','who']],
+ ['Do you remember the day ___ we went camping by the river?','when',['where','which','who']],
+ ['The woman ___ car was stolen called the police.','whose',['who','which','whom']],
+ ['The documentary, ___ won several awards, is about climate change.','which',['that','who','what']],
+ ['Albert Einstein, ___ theories changed modern physics, was born in Germany.','whose',['who','which','that']],
+ ['The restaurant ___ serves the best pasta in town is always crowded.','that',['who','where','whose']],
+ ['The musician, ___ the audience loved, played three encores.','whom',['which','whose','where']],
+ ['Seoul, ___ is the capital of South Korea, has more than nine million residents.','which',['that','where','who']],
+ ['The hotel, ___ was built in the 1920s, was recently renovated.','which',['that','who','when']]
+];
+const RW={which:'사물 선행사 + 뒤에 주어/목적어가 빠짐 → which. 콤마 뒤 that은 항상 오답.',who:'사람 선행사 + 뒤에 주어가 빠짐 → who.',whose:'뒤에 명사가 바로 오고 "~의" 관계 → whose.',where:'장소 선행사 + 뒤 문장이 완전함 → where.',when:'시간 선행사 + 뒤 문장이 완전함 → when.',that:'콤마 없는 사물 선행사 → that.',whom:'사람 선행사 + 목적어가 빠짐 → whom.'};
+
+function daySet(d){
+  const r=rng(d*7919+13),qs=[];
+  const sA=ACT.filter(a=>!a[5]),lA=ACT.filter(a=>a[5]),used=new Set();
+  TKEYS.forEach(k=>{
+    const useL=['prp','pap','fup'].includes(k)&&r()<0.5;
+    const a=pick(r,(useL?lA:sA).filter(x=>!used.has(x)));used.add(a);
+    const sb=pick(r,SUBJ),[tpl,clue]=pick(r,TF[k][useL?'l':'s']);
+    const c=conj(k,sb[1],a[1]);
+    const dis=shuffle(r,TKEYS.filter(x=>x!==k)).slice(0,3).map(x=>conj(x,sb[1],a[1]));
+    qs.push(mk(r,'tense',fillS(tpl,sb,a),c,dis,`<strong>${clue.replace('{D}',a[4])}</strong> → ${TN[k]} (${c}).`));
+  });
+  slice(P2,d,3,101).forEach(x=>qs.push(condQ(r,x,2)));
+  slice(P3,d,3,202).forEach(x=>qs.push(condQ(r,x,3)));
+  const nG=2+Math.floor(r()*3),gv=shuffle(r,GER),iv=shuffle(r,INF);
+  const va=shuffle(r,ACT.filter(a=>a[0]!=='wait'&&a[0]!=='live'));
+  for(let i=0;i<6;i++){
+    const ger=i<nG,v=ger?gv[i]:iv[i],a=va[i],sb=pick(r,SUBJ);
+    const tpl=pick(r,['{S} '+v[0]+' ___ {C}.','Last month, {S} '+v[0]+' ___ {C}.']);
+    const c=ger?a[1]:'to '+a[0];
+    const dis=ger?['to '+a[0],'having '+a[2],'to have '+a[2]]:[a[1],'to have '+a[2],'having '+a[2]];
+    qs.push(mk(r,'verbal',fillS(tpl,sb,a),c,dis,`<strong>${v[1]} + ${ger?'-ing':'to부정사'}</strong>. 완료형(having p.p., to have p.p.)은 지텔프에서 거의 정답이 아닙니다.`));
+  }
+  const rq=shuffle(r,REQ),sj=shuffle(r,SUBJ2),ac=shuffle(r,ACT2);
+  for(let i=0;i<2;i++){
+    const q=`${rq[i][0]} ${sj[i]} ___ ${ac[i][3]}.`;
+    qs.push(mk(r,'modal',q,ac[i][0],[ac[i][1],ac[i][2],'will '+ac[i][0]],`<strong>${rq[i][1]} that</strong> → 주어 + 동사원형. 주어(${sj[i]})가 단수여도 -s를 붙이지 않습니다.`));
+  }
+  slice(MB,d,2,303).forEach(x=>qs.push(mk(r,'modal',x[0],x[1],x[2],x[3])));
+  slice(CB,d,2,404).forEach(x=>qs.push(mk(r,'conn',x[0],x[1],x[2],`빈칸 앞뒤 관계: <strong>${x[1]}</strong> = ${CW[x[1]]}.`)));
+  slice(RB,d,2,505).forEach(x=>qs.push(mk(r,'rel',x[0],x[1],x[2],RW[x[1]])));
+  return shuffle(r,qs).map((q,i)=>Object.assign(q,{id:`D${d}-${i+1}`,src:'Day '+d}));
+}
+
+/* ---------- grammar UI ---------- */
+const NDAYS=40;
+let gMode='day',gDay=Math.min(Math.max(dayIndex(),1),NDAYS),gList=[],gIdx=0,gRight=0,gStart=0;
+function gMigrate(){for(const k in S.wrong){if(S.wrong[k]===true){const g=G.find(x=>x.id===k);if(g)S.wrong[k]=Object.assign({src:'기본 세트'},g);else delete S.wrong[k];}else if(!S.wrong[k])delete S.wrong[k];}saveLocal();}
+const wrongList=()=>Object.values(S.wrong).filter(x=>x&&typeof x==='object');
+const gKey=()=>gMode==='base'?'base':'d'+gDay;
+function gBuild(){
+  const today=Math.min(Math.max(dayIndex(),1),NDAYS);
+  let o=`<option value="base"${gMode==='base'?' selected':''}>기본 세트${S.gres.base?` ✓ ${S.gres.base.r}/${S.gres.base.n}`:''}</option>`;
+  for(let d=1;d<=NDAYS;d++){const res=S.gres['d'+d];o+=`<option value="d${d}"${gMode==='day'&&gDay===d?' selected':''}>Day ${d}${d===today?' (오늘)':''}${res?` ✓ ${res.r}/${res.n}`:''}</option>`;}
+  const wn=wrongList().length;
+  $('#gFilters').innerHTML=`<select id="gSel" class="sel" aria-label="문제 세트 고르기">${o}</select>
+    <button class="chip" id="gToday" aria-pressed="${gMode==='day'&&gDay===today}">오늘 세트</button>
+    <button class="chip" id="gWrongBtn" aria-pressed="${gMode==='wrong'}">오답노트 ${wn}</button>`;
+  $('#gSel').onchange=e=>{const v=e.target.value;if(v==='base')gMode='base';else{gMode='day';gDay=+v.slice(1);}gLoad();};
+  $('#gToday').onclick=()=>{gMode='day';gDay=today;gLoad();};
+  $('#gWrongBtn').onclick=()=>{gMode='wrong';gLoad();};
+}
+function gLoad(){
+  gList=gMode==='base'?G.map(x=>Object.assign({src:'기본 세트'},x)):gMode==='day'?daySet(gDay):wrongList();
+  gIdx=0;gRight=0;gStart=Date.now();gBuild();gRender();
+}
+function gRender(){
+  const box=$('#gBox');
+  if(!gList.length){box.innerHTML='<p class="lead" style="margin:0">오답노트가 비어 있습니다. 오늘 세트를 풀면 틀린 문제가 여기에 모입니다.</p>';return;}
+  if(gIdx>=gList.length){
+    const sec=Math.round((Date.now()-gStart)/1000),n=gList.length,pct=Math.round(gRight/n*100);
+    if(gMode!=='wrong'){S.gres[gKey()]={r:gRight,n};save();}
+    const left=wrongList().length;
+    const title=gMode==='wrong'?'오답노트 결과':gMode==='base'?'기본 세트 결과':`Day ${gDay} 결과`;
+    const msg=gMode==='wrong'?(left?`맞힌 문제는 오답노트에서 빠졌습니다. 남은 오답 ${left}개는 내일 다시 풀어 보세요.`:'오답노트를 모두 비웠습니다.')
+      :pct>=90?'실전 기준 통과입니다. 내일 세트로 넘어가세요.':'틀린 문제는 오답노트에 들어갔습니다. 요약표에서 해당 유형 단서를 보고 오답노트를 풀어 보세요.';
+    box.innerHTML=`<div class="stack"><div class="label">${title}</div>
+      <div class="total" style="margin:0"><span class="big mono">${gRight}/${n}</span><span class="pill ${pct>=90?'ok':'bad'}">${pct}점</span></div>
+      <p class="score-line">걸린 시간 ${Math.floor(sec/60)}분 ${sec%60}초 · 실전 목표는 26문항 15~20분</p>
+      <p class="lead" style="margin:0">${msg}</p>
+      <div class="row">${gMode==='day'&&gDay<NDAYS?`<button class="btn" id="gNextSet">Day ${gDay+1} 풀기</button>`:''}
+        <button class="btn ghost" id="gAgain">다시 풀기</button>
+        ${left&&gMode!=='wrong'?`<button class="btn ghost" id="gWrong">오답노트 ${left}개 풀기</button>`:''}</div></div>`;
+    $('#gAgain').onclick=gLoad;
+    if($('#gWrong'))$('#gWrong').onclick=()=>{gMode='wrong';gLoad();};
+    if($('#gNextSet'))$('#gNextSet').onclick=()=>{gDay++;gLoad();};
+    gBuild();return;
+  }
+  const it=gList[gIdx];
+  box.innerHTML=`<div class="q">
+    <div class="qhead"><span>${GT[it.ty]}${gMode==='wrong'&&it.src?' · '+esc(it.src):''}</span><span>${gIdx+1} / ${gList.length} · 정답 ${gRight}</span></div>
+    <div class="stem">${esc(it.q).replace('___','<u>&nbsp;</u>')}</div>
+    <div class="opts">${it.o.map((o,i)=>`<button class="opt" data-i="${i}"><span class="bub">${L[i]}</span><span>${esc(o)}</span></button>`).join('')}</div>
+    <div id="gWhy"></div></div>`;
+  box.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.i,ok=i===it.a;
+    box.querySelectorAll('.opt').forEach((x,j)=>{x.disabled=true;if(j===it.a)x.classList.add('right');});
+    if(!ok)b.classList.add('wrong');
+    if(ok){gRight++;delete S.wrong[it.id];}
+    else S.wrong[it.id]={id:it.id,ty:it.ty,q:it.q,o:it.o,a:it.a,w:it.w,src:it.src||''};
+    save();
+    const full=it.q.replace('___',it.o[it.a]);
+    $('#gWhy').innerHTML=`<div class="why">${ok?'<strong>정답.</strong> ':'<strong>오답.</strong> 정답은 ('+L[it.a]+'). '}${it.w}</div>
+      <div class="row" style="margin-top:10px"><button class="btn" id="gNext">다음 문제</button><button class="btn ghost" id="gSay">▶ 문장 듣기</button></div>`;
+    $('#gNext').onclick=()=>{stopAudio();gIdx++;gRender();};
+    $('#gSay').onclick=()=>{speakSeq([{t:full,rate:0.95}],null,c=>{$('#gWhy').insertAdjacentHTML('beforeend',`<p class="score-line">${ttsHelp(c)}</p>`);});};
+    gBuild();$('#gNext').focus();
+  });
+}
+
+/* ---------- generic question set (청취·독해) ---------- */
+function renderSet(el,qs,showQ){
+  el.innerHTML=qs.map((q,n)=>`<div class="q" data-n="${n}">
+    <div class="qhead"><span>Q${n+1}</span></div>
+    ${showQ?`<div class="stem" style="font-size:15px">${esc(q.q)}</div>`:'<div class="stem qhide" style="font-size:14px;color:var(--muted)">(질문은 음성으로만 나옵니다)</div>'}
+    <div class="opts">${q.o.map((o,i)=>`<button class="opt" data-i="${i}"><span class="bub">${L[i]}</span><span>${esc(o)}</span></button>`).join('')}</div>
+    <div class="res"></div></div>`).join('')+'<div class="score-line setScore"></div>';
+  let right=0,done=0;
+  el.querySelectorAll('.q').forEach(qd=>{
+    const q=qs[+qd.dataset.n];
+    qd.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      const i=+b.dataset.i,ok=i===q.a;
+      qd.querySelectorAll('.opt').forEach((x,j)=>{x.disabled=true;if(j===q.a)x.classList.add('right');});
+      if(!ok)b.classList.add('wrong');
+      done++;if(ok)right++;
+      const hq=qd.querySelector('.qhide');if(hq){hq.textContent=q.q;hq.style.color='var(--ink)';}
+      if(q.w)qd.querySelector('.res').innerHTML=`<div class="why">${q.w}</div>`;
+      el.querySelector('.setScore').textContent=`${done}/${qs.length} 풀이 · 정답 ${right}`;
+    });
+  });
+}
+
+/* ---------- listening ---------- */
+const LS=[
+ {title:'Part 1 · 일상 대화',lines:[
+  ['M','Hi, Rachel! I didn\'t expect to see you at the farmers\' market this early.'],
+  ['F','Hey, Ben. I come every Saturday before nine. The fresh bread here sells out really fast.'],
+  ['M','Really? I came for honey. My sister told me about a beekeeper who sells here.'],
+  ['F','Oh, that\'s Mr. Collins. His stand is next to the flower shop, but he only comes on the first Saturday of the month.'],
+  ['M','Today is the first Saturday, right?'],
+  ['F','Yes, you\'re lucky. By the way, are you still working at the city library?'],
+  ['M','Not anymore. I started a new job at a design company last month. I work from home on Fridays, so I have more free time now.'],
+  ['F','That sounds great. We should have coffee sometime.'],
+  ['M','Definitely. How about next Friday afternoon?'],
+  ['F','Perfect. Let\'s meet at the café on Maple Street.']],
+  qs:[
+  {q:'Why does Rachel come to the market early?',o:['to buy flowers','because the bread sells out quickly','to meet Ben','because she works there'],a:1,w:'"The fresh bread here sells out really fast" → sells out quickly. 같은 말을 거의 그대로 바꿔 씁니다.'},
+  {q:'When does Mr. Collins sell at the market?',o:['every Saturday','every Friday','on the first Saturday of the month','only in summer'],a:2,w:'every Saturday는 Rachel 이야기입니다. 인물과 정보를 섞는 함정.'},
+  {q:'What is probably true about Ben?',o:['He still works at a library.','He recently changed jobs.','He is a beekeeper.','He lives with his sister.'],a:1,w:'probably 문제 = 추론. "started a new job last month" → recently changed jobs.'},
+  {q:'Where will Rachel and Ben most likely meet next Friday?',o:['at the farmers\' market','at the library','at a café on Maple Street','at Ben\'s office'],a:2,w:'마지막 질문은 대화 마지막 문장에 답이 있는 경우가 많습니다.'}]},
+ {title:'Part 4 · 과정 설명',lines:[
+  ['N','Good morning, everyone. Today I\'ll share some tips on how to prepare for a job interview.'],
+  ['N','First, research the company carefully. Read its website and recent news so you can explain why you want to work there.'],
+  ['N','Second, practice answering common questions out loud. Many people know what to say, but they become nervous when they actually speak.'],
+  ['N','Recording yourself is a good way to notice habits, like speaking too fast.'],
+  ['N','Third, prepare at least two questions to ask the interviewer. This shows that you are genuinely interested in the position.'],
+  ['N','Finally, plan your route the day before and arrive about ten minutes early. Arriving too early can actually make the interviewer feel rushed.'],
+  ['N','Follow these steps, and you\'ll walk into your interview with confidence.']],
+  qs:[
+  {q:'What is the talk mainly about?',o:['how to write a résumé','how to prepare for a job interview','how to research a company\'s history','how to choose a career'],a:1,w:'주제는 첫 두 문장에서 나옵니다.'},
+  {q:'Why does the speaker suggest recording yourself?',o:['to send it to the company','to memorize answers','to notice habits such as speaking too fast','to practice for a presentation'],a:2,w:'Second 구간. 신호어(First, Second, Finally)로 위치를 잡으세요.'},
+  {q:'According to the speaker, why should you ask the interviewer questions?',o:['to show interest in the job','to learn about the salary','to save time','to avoid difficult questions'],a:0,w:'"genuinely interested in the position" → show interest in the job.'},
+  {q:'Why does the speaker advise against arriving too early?',o:['The office may be closed.','It may make the interviewer feel rushed.','You may get lost.','You will have to wait outside.'],a:1,w:'"too early"가 들리면 바로 뒤 문장이 답입니다.'}]}
+];
+LS[0].tip='일상 대화는 두 사람 정보를 섞는 함정이 많습니다. 질문의 주어(누가)를 꼭 메모하세요.';
+LS[1].tip='First, Second, Finally 신호어마다 문제가 하나씩 걸려 있습니다.';
+LS.push(
+ {title:'Part 2 · 행사 소개',tip:'발표는 첫 문장에 목적, 중간에 숫자·조건, 끝에 권유가 나옵니다.',lines:[
+  ['N','Good evening, and welcome to the opening night of the Riverside Food Festival.'],
+  ['N','I\'m Laura Chen, the festival director, and I\'d like to tell you what you can expect this weekend.'],
+  ['N','This year, more than sixty local restaurants are taking part, which is twice as many as last year.'],
+  ['N','Every booth offers sample-size dishes for three dollars, so you can try many different foods without spending too much.'],
+  ['N','On Saturday afternoon, chef Marco Diaz will hold a free cooking class on the main stage. Seats are limited, so please sign up at the information tent by noon.'],
+  ['N','We have also made the festival greener. Instead of plastic plates, all vendors will use plates made from bamboo, which can be composted.'],
+  ['N','Finally, because parking near the river is limited, we strongly recommend taking the free shuttle bus, which leaves from City Hall every fifteen minutes.'],
+  ['N','Enjoy the food, and thank you for supporting local businesses.']],
+  qs:[
+  {q:'What is the speaker mainly doing?',o:['introducing a food festival','opening a new restaurant','teaching a cooking class','announcing a new parking rule'],a:0,w:'첫 문장 "welcome to the opening night of the Riverside Food Festival".'},
+  {q:'How is this year\'s festival different from last year\'s?',o:['It is held indoors.','It has twice as many restaurants.','All the food is free.','It lasts for a whole week.'],a:1,w:'"twice as many as last year". 비교 질문은 last year 근처에 답이 있습니다.'},
+  {q:'What must people do to join the cooking class?',o:['pay three dollars','sign up at the information tent by noon','bring their own ingredients','buy a ticket online'],a:1,w:'three dollars는 음식 가격입니다. 숫자 함정.'},
+  {q:'Why does the festival use bamboo plates?',o:['They are cheaper.','They look more traditional.','They are better for the environment.','They are stronger than plastic.'],a:2,w:'"greener", "can be composted" → better for the environment.'},
+  {q:'Why does the speaker recommend taking the shuttle bus?',o:['Parking near the river is limited.','The bus is faster than driving.','City Hall is closed on weekends.','Shuttle riders get a discount.'],a:0,w:'because 뒤가 바로 이유입니다.'}]},
+ {title:'Part 2 · 제품 소개',tip:'제품 소개는 문제점 → 기능 → 차별점 → 할인 조건 순서가 정해져 있습니다.',lines:[
+  ['N','Are you tired of forgetting to water your plants? Let me introduce the GreenPal smart pot.'],
+  ['N','GreenPal has a small sensor in the soil that checks the moisture level every hour.'],
+  ['N','When the soil becomes too dry, a built-in tank waters the plant automatically. The tank holds enough water for about three weeks.'],
+  ['N','You can also connect the pot to a free smartphone app, which sends you a message when the tank needs to be refilled.'],
+  ['N','Unlike other smart pots, GreenPal runs on solar power, so you never have to change batteries. Just place it near a window.'],
+  ['N','GreenPal comes in three sizes and five colors. If you order before the end of this month, you\'ll receive a twenty percent discount and a free bag of organic soil.']],
+  qs:[
+  {q:'What problem is GreenPal designed to solve?',o:['plants getting too much sunlight','people forgetting to water their plants','pots breaking easily','soil losing its nutrients'],a:1,w:'첫 문장의 질문 "tired of forgetting to water your plants?"가 문제점입니다.'},
+  {q:'How often does the sensor check the soil?',o:['every hour','every day','every week','every three weeks'],a:0,w:'three weeks는 물탱크 용량입니다. 숫자를 각각 무엇에 대한 것인지 메모하세요.'},
+  {q:'What does the smartphone app do?',o:['It controls the lighting.','It tells users when to refill the tank.','It orders new plants.','It measures the room temperature.'],a:1,w:'"sends you a message when the tank needs to be refilled".'},
+  {q:'How is GreenPal different from other smart pots?',o:['It is larger.','It uses solar power.','It does not need an app.','It is made of glass.'],a:1,w:'"Unlike other smart pots" 뒤가 차별점입니다.'},
+  {q:'What will customers get if they order this month?',o:['a free second pot','a discount and free soil','free delivery','a longer warranty'],a:1,w:'"twenty percent discount and a free bag of organic soil".'}]},
+ {title:'Part 3 · 헬스장 vs 홈트',tip:'두 선택지의 장점·단점을 표로 메모하고, 마지막 결정 문장을 놓치지 마세요.',lines:[
+  ['M','Hi, Kate. I\'m finally going to start exercising regularly, but I can\'t decide whether to join a gym or work out at home.'],
+  ['F','Well, a gym has a lot of advantages, Eric. You can use all kinds of equipment, and there are trainers who can teach you the right form.'],
+  ['M','That\'s true. And I think I\'d be more motivated if I saw other people working out.'],
+  ['F','Right. But gyms can be expensive. The one near my office charges sixty dollars a month. Also, you have to travel there, which takes time.'],
+  ['M','Hmm. What about working out at home?'],
+  ['F','The biggest advantage is that it\'s convenient. You can exercise whenever you want, even late at night, and there are lots of free workout videos online.'],
+  ['M','But I\'m worried I\'d get lazy at home. My sofa is too comfortable.'],
+  ['F','That\'s the main disadvantage. Without anyone watching, it\'s easy to skip a workout.'],
+  ['M','You know, I think I need someone to push me. Since there\'s a gym just five minutes from my apartment, I\'ll sign up there this weekend.'],
+  ['F','Good choice. Maybe I\'ll join you sometimes.']],
+  qs:[
+  {q:'What are Eric and Kate mainly discussing?',o:['which gym is the cheapest','whether to exercise at a gym or at home','how to lose weight quickly','where to buy exercise equipment'],a:1,w:'첫 대사 "whether to join a gym or work out at home".'},
+  {q:'According to Kate, what is one benefit of a gym?',o:['It is open all night.','Trainers can teach the right form.','It offers free workout videos.','It is cheaper than working out at home.'],a:1,w:'free videos는 홈트 장점입니다. 장단점을 섞는 함정.'},
+  {q:'What disadvantage of a gym does Kate mention?',o:['It is often crowded.','The equipment is old.','It costs money and travel time.','The trainers are too strict.'],a:2,w:'"expensive" + "travel there, which takes time".'},
+  {q:'Why is Eric worried about working out at home?',o:['He has no space.','He might become lazy.','His neighbors would complain.','The videos are too difficult.'],a:1,w:'"I\'d get lazy at home".'},
+  {q:'What has Eric most likely decided to do?',o:['buy equipment for his home','join a gym near his apartment','exercise with online videos','wait until next month'],a:1,w:'Part 3 마지막 문제는 거의 항상 "결정"입니다. 마지막 대사에 답이 있습니다.'}]},
+ {title:'Part 3 · 아파트 고르기',tip:'두 선택지의 장점·단점을 표로 메모하고, 마지막 결정 문장을 놓치지 마세요.',lines:[
+  ['F','Hi, Mike. My lease ends next month, and I have to choose between two apartments.'],
+  ['M','Oh, where are they, Jenny?'],
+  ['F','One is downtown, near my office. The other is in the suburbs, about forty minutes away by train.'],
+  ['M','Living downtown must be convenient. You could walk to work and save money on transportation.'],
+  ['F','Exactly. There are also lots of restaurants and shops nearby. The problem is that the apartment is really small, and the rent is high.'],
+  ['M','What about the one in the suburbs?'],
+  ['F','It\'s much bigger, and it even has a small garden. The rent is about three hundred dollars cheaper.'],
+  ['M','That sounds great, but the commute would be tiring, wouldn\'t it?'],
+  ['F','Yes, eighty minutes a day on the train. And the last train leaves the city at eleven, so going out with friends would be difficult.'],
+  ['M','Hmm, but you could read or rest on the train.'],
+  ['F','True. And honestly, I\'ve always wanted space for my plants and a quiet place to sleep. I think the extra room and the lower rent matter more to me.'],
+  ['M','Then the suburbs sound right for you.']],
+  qs:[
+  {q:'What is Jenny trying to decide?',o:['which job to take','which apartment to rent','whether to buy a car','where to open a shop'],a:1},
+  {q:'What is an advantage of the downtown apartment?',o:['It has a garden.','It is very large.','She could walk to work.','The rent is low.'],a:2,w:'garden, large, low rent는 모두 교외 아파트 장점입니다.'},
+  {q:'What is a disadvantage of the downtown apartment?',o:['It is far from shops.','It is small and expensive.','It is noisy at night.','It has no train station nearby.'],a:1,w:'"The problem is" 뒤가 단점입니다.'},
+  {q:'Why would going out with friends be difficult if she lived in the suburbs?',o:['The last train leaves at eleven.','Her friends live far away.','Restaurants close early.','She would have less money.'],a:0,w:'"so going out with friends would be difficult" 바로 앞 문장이 이유입니다.'},
+  {q:'What will Jenny probably do?',o:['stay in her current home','choose the downtown apartment','choose the apartment in the suburbs','move in with Mike'],a:2,w:'"the extra room and the lower rent matter more to me" → 교외.'}]},
+ {title:'Part 1 · 여행 이야기',tip:'일상 대화는 두 사람 정보를 섞는 함정이 많습니다. 질문의 주어(누가)를 꼭 메모하세요.',lines:[
+  ['F','Welcome back, Tom! How was your trip to Vancouver?'],
+  ['M','It was wonderful, Amy, although the first day was a disaster.'],
+  ['F','Oh no. What happened?'],
+  ['M','The airline lost my suitcase. I had to buy clothes and a toothbrush at the airport.'],
+  ['F','That\'s terrible. Did you ever get it back?'],
+  ['M','Yes, it arrived at my hotel two days later. The airline even paid for the things I bought.'],
+  ['F','Well, that\'s good. What did you do there?'],
+  ['M','I spent most of my time hiking in the mountains. The views were amazing. I also took a ferry to Vancouver Island to watch whales.'],
+  ['F','Did you see any?'],
+  ['M','We saw a group of orcas! The guide said we were lucky because it was early in the season.'],
+  ['F','I\'m so jealous. I\'ve been thinking about going to Canada next summer.'],
+  ['M','You should. I\'ll send you the name of the tour company I used. They were very professional.']],
+  qs:[
+  {q:'Why was Tom\'s first day a disaster?',o:['His flight was canceled.','The airline lost his suitcase.','His hotel room was dirty.','He got sick.'],a:1},
+  {q:'What did the airline do for Tom?',o:['It gave him a free ticket.','It paid for the items he bought.','It upgraded his hotel room.','It sent him a gift.'],a:1,w:'"paid for the things I bought" → paid for the items.'},
+  {q:'How did Tom spend most of his time in Vancouver?',o:['shopping downtown','hiking in the mountains','visiting museums','relaxing at his hotel'],a:1,w:'"most of my time"가 질문의 most of his time과 그대로 연결됩니다.'},
+  {q:'Why did the guide say they were lucky?',o:['The weather was perfect.','They saw orcas early in the season.','The ferry ride was free.','They found the lost suitcase.'],a:1},
+  {q:'What will Tom probably do next?',o:['send Amy the name of a tour company','book a trip with Amy','complain to the airline','return to Vancouver'],a:0,w:'마지막 대사 "I\'ll send you the name of the tour company".'}]},
+ {title:'Part 4 · 텃밭 가꾸기',tip:'First, Second, Finally 신호어마다 문제가 하나씩 걸려 있습니다.',lines:[
+  ['N','Hello, everyone. Starting a small vegetable garden is easier than you think. Today I\'ll walk you through the basic steps.'],
+  ['N','First, choose the right spot. Most vegetables need at least six hours of direct sunlight a day, so avoid areas shaded by trees or buildings.'],
+  ['N','Second, prepare the soil. Remove rocks and weeds, and mix in compost. Healthy soil is the most important factor for a good harvest.'],
+  ['N','Third, decide what to grow. If you\'re a beginner, start with easy vegetables like lettuce, tomatoes, and beans rather than difficult ones like cauliflower.'],
+  ['N','Fourth, water your plants in the early morning. Watering at night can leave the leaves wet for too long, which may cause disease.'],
+  ['N','Finally, keep a simple garden journal. Write down what you planted and when, so you can learn from your mistakes next year.'],
+  ['N','With a little patience, you\'ll be enjoying your own fresh vegetables in just a few months.']],
+  qs:[
+  {q:'What is the talk mainly about?',o:['how to cook fresh vegetables','how to start a vegetable garden','how to sell vegetables at a market','how to design a public park'],a:1},
+  {q:'Why should a garden not be placed near trees or buildings?',o:['The soil there is too dry.','The area may not get enough sunlight.','Animals may eat the plants.','It is hard to water there.'],a:1,w:'"avoid areas shaded by trees" → 햇빛 부족.'},
+  {q:'According to the speaker, what is the most important factor for a good harvest?',o:['direct sunlight','expensive seeds','healthy soil','a large space'],a:2,w:'"the most important factor"를 질문에서 메모했다면 바로 잡힙니다. 햇빛은 첫 단계 내용.'},
+  {q:'Why should plants not be watered at night?',o:['The water may freeze.','Wet leaves may lead to disease.','It wastes water.','Insects come out at night.'],a:1},
+  {q:'Why does the speaker suggest keeping a garden journal?',o:['to share it with neighbors','to learn from mistakes the next year','to calculate costs','to enter a gardening contest'],a:1}]}
+);
+LS.sort((a,b)=>a.title.slice(0,6).localeCompare(b.title.slice(0,6)));
+let allVoices=[],voices=[],speakToken=0;
+function loadVoices(){if(!window.speechSynthesis)return;allVoices=speechSynthesis.getVoices();voices=allVoices.filter(v=>/^en/i.test(v.lang));}
+if(window.speechSynthesis){loadVoices();speechSynthesis.onvoiceschanged=loadVoices;}
+function koVoice(){return allVoices.find(v=>/^ko/i.test(v.lang))||null;}
+function pickVoice(sp){
+  if(!voices.length)return null;
+  const us=voices.filter(v=>/en-US/i.test(v.lang));const pool=us.length?us:voices;
+  const fem=pool.find(v=>/female|samantha|zira|aria|jenny|google us english/i.test(v.name));
+  const mal=pool.find(v=>/male|david|guy|alex|daniel|fred/i.test(v.name)&&!/female/i.test(v.name));
+  if(sp==='F')return fem||pool[0];
+  if(sp==='M')return mal||pool[1]||pool[0];
+  return fem||pool[0];
+}
+/* parts: [{t, lang, rate, sp, onstart}] — 한 문장씩 이어서 재생(모바일 안정성). 끝나면 done(true), 실패하면 fail(code) */
+const ttsOK=()=>!!(window.speechSynthesis&&window.SpeechSynthesisUtterance);
+let curUtt=null;
+function speakSeq(parts,done,fail){
+  if(!ttsOK()||!parts.length){fail&&fail('unsupported');return false;}
+  const ss=window.speechSynthesis,tok=++speakToken;let i=0,started=false;
+  try{if(ss.speaking||ss.pending)ss.cancel();ss.resume();}catch(e){}
+  const next=()=>{
+    if(tok!==speakToken)return;
+    if(i>=parts.length){done&&done(true);return;}
+    const p=parts[i++],u=new SpeechSynthesisUtterance(p.t);
+    u.lang=p.lang||'en-US';u.rate=p.rate||1;u.volume=1;
+    const v=u.lang.startsWith('ko')?koVoice():pickVoice(p.sp||'F');if(v)u.voice=v;
+    if(p.sp==='M'&&(!v||v===pickVoice('F')))u.pitch=0.75;
+    u.onstart=()=>{started=true;if(p.onstart)p.onstart();};
+    u.onend=()=>next();
+    u.onerror=e=>{if(tok!==speakToken)return;const c=e&&e.error;if(c==='interrupted'||c==='canceled')return;fail&&fail(c||'error');};
+    curUtt=u;ss.speak(u);
+  };
+  next();
+  setTimeout(()=>{if(tok===speakToken&&!started)fail&&fail('nostart');},4000);
+  return true;
+}
+function ttsHelp(code){
+  if(code==='unsupported')return '이 화면은 음성 재생을 지원하지 않습니다(안드로이드 Claude 앱 등). 링크를 Chrome이나 Safari에서 열어 주세요.';
+  if(code==='not-allowed')return '브라우저가 재생을 막았습니다. 버튼을 한 번 더 눌러 주세요.';
+  return '소리가 안 들리면: ① 아이폰은 옆면 무음 스위치를 끄고 볼륨을 올리세요 ② Claude 앱 안이라면 Safari·Chrome에서 링크를 열어 보세요 ③ 소리 테스트 버튼으로 확인하세요.';
+}
+/* 녹음 파일 재생 (실패하면 fail 호출 → 기기 음성으로 대체) */
+const AU=new Audio();AU.preload='none';let auToken=0;
+function playFile(src,o={}){
+  const el=o.el||AU,tok=++auToken;
+  speakToken++;try{if(window.speechSynthesis&&(speechSynthesis.speaking||speechSynthesis.pending))speechSynthesis.cancel();}catch(e){}
+  [AU,$('#lAudio')].forEach(a=>{if(a&&a!==el)a.pause();});
+  if(el.getAttribute('src')!==src)el.src=src;else el.currentTime=0;
+  el.playbackRate=o.rate||1;
+  el.onended=()=>{if(tok===auToken&&o.onend)o.onend();};
+  el.onerror=()=>{if(tok===auToken&&o.onfail)o.onfail('file');};
+  const pr=el.play();
+  if(pr&&pr.then)pr.then(()=>{if(tok===auToken&&o.onstart)o.onstart();}).catch(e=>{if(tok===auToken&&o.onfail&&!(e&&e.name==='AbortError'))o.onfail(e&&e.name==='NotAllowedError'?'not-allowed':'file');});
+}
+function stopAudio(){auToken++;AU.pause();const la=$('#lAudio');if(la)la.pause();speakToken++;try{if(window.speechSynthesis&&(speechSynthesis.speaking||speechSynthesis.pending))speechSynthesis.cancel();}catch(e){}if(typeof vLooping!=='undefined'&&vLooping){vLooping=false;vLoopBtn();}}
+function speak(lines){
+  const st=$('#lStatus'),rate=+$('#lRate').value;
+  st.textContent='재생 준비 중…';
+  speakSeq(lines.map(([sp,t],i)=>({t,sp,rate,onstart:i===0?()=>{st.textContent='재생 중…';}:null})),()=>{st.textContent='재생 끝';},c=>{st.textContent=ttsHelp(c);});
+}
+function soundTest(){
+  const st=$('#lStatus');
+  if(!ttsOK()){st.textContent='음성 기능 없음. '+ttsHelp('unsupported');return;}
+  loadVoices();
+  st.textContent=`음성 기능 있음 · 영어 음성 ${voices.length}개 · 재생 시도 중…`;
+  speakSeq([{t:'Sound check. One, two, three.',rate:1}],()=>{st.textContent=`소리 테스트 끝 (영어 음성 ${voices.length}개). 들렸다면 정상입니다.`;},c=>{st.textContent=ttsHelp(c);});
+}
+let lIdx=0;
+function lBuild(){
+  $('#lFilters').innerHTML=LS.map((s,i)=>`<button class="chip" data-i="${i}" aria-pressed="${i===lIdx}">${s.title}</button>`).join('');
+  document.querySelectorAll('#lFilters .chip').forEach(c=>c.onclick=()=>{lIdx=+c.dataset.i;stopAudio();lBuild();});
+  const s=LS[lIdx];
+  $('#lBox').innerHTML=`
+    <div class="tip"><b>순서</b> ① 질문 듣기 → 의문사·핵심 명사 메모 (예: why / Rachel / early) ② 본문 듣기 → 메모한 단어가 나올 때 집중 ③ 보기 고르기 ④ 스크립트로 놓친 문장 확인</div>
+    ${s.tip?`<div class="tip"><b>이 파트</b> ${s.tip}</div>`:''}
+    <div class="player">
+      <button class="btn" id="lQ">① 질문 듣기</button>
+      <button class="btn" id="lP">② 본문 듣기</button>
+      <button class="btn ghost" id="lStop">정지</button>
+      <button class="btn ghost" id="lTest">소리 테스트</button>
+      <select id="lRate" aria-label="재생 속도"><option value="0.85">느리게 0.85x</option><option value="1" selected>보통 1.0x</option><option value="1.1">빠르게 1.1x</option></select>
+      <span class="score-line" id="lStatus"></span>
+    </div>
+    <audio id="lAudio" controls preload="none" style="width:100%"></audio>
+    <div id="lQs" class="stack"></div>
+    <details><summary>스크립트 보기</summary><div class="script" style="margin-top:8px">${s.lines.map(([sp,t])=>`<p><b>${sp==='N'?'':sp+':'}</b> ${esc(t)}</p>`).join('')}</div></details>`;
+  renderSet($('#lQs'),s.qs,false);
+  const st=$('#lStatus'),rate=()=>+$('#lRate').value;
+  const play=(kind,label,fb)=>{st.textContent='불러오는 중…';playFile(`audio/l${lIdx}_${kind}.mp3`,{el:$('#lAudio'),rate:rate(),
+    onstart:()=>{st.textContent=label+' 재생 중';},onend:()=>{st.textContent=label+' 끝';},
+    onfail:c=>{if(c==='not-allowed'){st.textContent=ttsHelp(c);return;}st.textContent='녹음 파일을 못 불러와 기기 음성으로 읽습니다.';speak(fb);}});};
+  $('#lQ').onclick=()=>play('q','질문',s.qs.map((q,i)=>['N','Number '+(i+1)+'. '+q.q]));
+  $('#lP').onclick=()=>play('p','본문',s.lines);
+  $('#lRate').onchange=()=>{$('#lAudio').playbackRate=rate();};
+  $('#lTest').onclick=soundTest;
+  $('#lStop').onclick=()=>{stopAudio();$('#lStatus').textContent='정지';};
+}
+
+/* ---------- reading ---------- */
+const RS=[
+ {title:'Part 1 · 그레이스 호퍼',tip:'인물 전기는 출생 → 성장 → 업적 → 말년 순서. 문제도 이 순서로 나옵니다.',paras:[
+  '<b>GRACE HOPPER</b>',
+  'Grace Hopper was an American computer scientist and naval officer who helped make computers easier for ordinary people to use. She is best known for developing early programming tools that allowed instructions to be written in words rather than numbers.',
+  'Born in New York City in 1906, Hopper showed a strong <mark>curiosity</mark> from a young age. As a child, she once took apart several alarm clocks to understand how they worked. She later studied mathematics and physics, and in 1934 she earned a doctorate in mathematics from Yale University.',
+  'In 1943, during World War II, Hopper joined the U.S. Navy Reserve. She was assigned to Harvard University, where she worked on the Mark I, one of the first large-scale computers. At the time, programming required long strings of numerical codes, which made errors common.',
+  'Hopper believed that computers should understand language closer to English. In 1952, her team created one of the first compilers, a program that translates human-readable instructions into machine code. Many experts <mark>doubted</mark> the idea, but her work later contributed to the development of COBOL, a business programming language that is still used today.',
+  'Hopper retired from the Navy in 1986 as a rear admiral. In 2016, she was posthumously awarded the Presidential Medal of Freedom.'],
+  qs:[
+  {q:'What is Grace Hopper best known for?',o:['building the first alarm clock','creating tools that let programs be written in words','commanding the Navy during World War II','founding a computer department at Yale'],a:1,w:'1문단 "best known for" 문장이 그대로 답. 첫 문제는 대개 1문단에 있습니다.'},
+  {q:'Why were errors common when Hopper began working on the Mark I?',o:['The computer often broke down.','Programmers lacked training.','Programs were written as long numerical codes.','The Navy changed its rules frequently.'],a:2,w:'"long strings of numerical codes, which made errors common" → 원인 그대로.'},
+  {q:'Based on the passage, how did many experts first react to the compiler?',o:['They supported it strongly.','They were skeptical about it.','They copied it immediately.','They replaced it with COBOL.'],a:1,w:'doubted → skeptical. 정답은 본문 단어를 다른 말로 바꿔 둡니다.'},
+  {q:'In the context of the passage, curiosity means ___.',o:['anxiety','interest','honesty','strength'],a:1,w:'시계를 분해한 일화 → 알고 싶은 마음 = interest. 보기를 빈칸에 넣어 읽어 보세요.'},
+  {q:'In the context of the passage, doubted means ___.',o:['questioned','praised','explained','ignored'],a:0,w:'뒤에 "but her work later contributed" 역접 → 처음엔 의심했다 = questioned.'}]},
+ {title:'Part 1 · 마리 퀴리',tip:'인물 전기는 출생 → 성장 → 업적 → 말년 순서. 문제도 이 순서로 나옵니다.',paras:[
+  '<b>MARIE CURIE</b>',
+  'Marie Curie was a Polish-born physicist and chemist who became the first woman to win a Nobel Prize. She is best remembered for her research on radioactivity, a term she helped create.',
+  'Born Maria Skłodowska in Warsaw in 1867, she was an excellent student, but women were not allowed to attend university in Poland at the time. In 1891, she moved to Paris and <mark>enrolled</mark> at the Sorbonne, where she studied physics and mathematics despite having very little money.',
+  'In Paris, she met the physicist Pierre Curie, and the two married in 1895. Working together in a poorly equipped shed, they discovered two new elements in 1898: polonium, named after her home country, and radium. In 1903, the couple shared the Nobel Prize in Physics with Henri Becquerel.',
+  'After Pierre died in a street accident in 1906, Marie continued their work alone. She took over his teaching position, becoming the first female professor at the Sorbonne, and in 1911 she won a second Nobel Prize, this time in chemistry.',
+  'During World War I, Curie developed mobile X-ray units that helped doctors treat wounded soldiers near the front lines. Years of exposure to radiation <mark>severely</mark> damaged her health, and she died in 1934. Today, she remains a symbol of scientific dedication.'],
+  qs:[
+  {q:'What is Marie Curie best known for?',o:['inventing the X-ray machine','her research on radioactivity','founding the Sorbonne','teaching mathematics in Poland'],a:1,w:'"best remembered for" = best known for.'},
+  {q:'Why did Curie move to Paris?',o:['to marry Pierre Curie','because women could not attend university in Poland','to work at a military hospital','to escape World War I'],a:1,w:'2문단: Poland에서는 여성이 대학에 갈 수 없었다 → 파리로 이주. Pierre는 파리에 간 뒤에 만났습니다.'},
+  {q:'What was polonium named after?',o:['a French scientist','her husband','her home country','a university'],a:2},
+  {q:'What happened after Pierre Curie\'s death?',o:['Marie stopped her research.','Marie returned to Poland.','Marie took over his teaching position.','Marie won the Nobel Prize in Physics.'],a:2,w:'물리학상은 1903년, Pierre 사망(1906) 전입니다. 시간 순서 함정.'},
+  {q:'In the context of the passage, enrolled means ___.',o:['registered','worked','traveled','lived'],a:0,w:'enroll at a university = 등록하다 = registered.'},
+  {q:'In the context of the passage, severely means ___.',o:['seriously','slowly','partly','suddenly'],a:0}]},
+ {title:'Part 2 · 식후 산책',tip:'잡지 기사는 1문단에 주제, 중간에 원인·방법, 마지막에 조언. "mainly about" 문제는 1문단으로.',paras:[
+  '<b>A SHORT WALK AFTER MEALS MAY DO MORE THAN YOU THINK</b>',
+  'Many people feel like resting on the sofa after a big meal. However, a growing body of research suggests that getting up and moving, even briefly, may be one of the simplest ways to protect your health.',
+  'When we eat, especially foods rich in carbohydrates such as rice, bread, and noodles, the level of sugar in our blood rises. Frequent, sharp rises in blood sugar are linked to a higher risk of type 2 diabetes and heart disease over time.',
+  'Researchers have found that light physical activity after eating can help reduce these rises. When muscles work, they use sugar from the blood as fuel, so less of it remains in the bloodstream. Some studies suggest that even a few minutes of walking can make a <mark>measurable</mark> difference, although longer walks appear to provide greater benefits.',
+  'Timing also seems to matter. Blood sugar usually peaks within about an hour after a meal, so experts often advise starting to move soon after eating rather than waiting several hours.',
+  'The good news is that the activity does not need to be <mark>intense</mark>. A slow walk around the office, washing the dishes, or taking the stairs can all help. For people who sit at a desk all day, these small habits may be an easy and inexpensive way to support long-term health.'],
+  qs:[
+  {q:'What is the article mainly about?',o:['why people feel tired after meals','the health benefits of moving after eating','how to cook low-sugar meals','the dangers of eating noodles'],a:1,w:'1문단 "getting up and moving ... protect your health".'},
+  {q:'According to the article, what happens after people eat foods rich in carbohydrates?',o:['Their blood sugar drops quickly.','Their blood sugar rises.','Their muscles stop working.','They lose their appetite.'],a:1},
+  {q:'How does walking help reduce the rise in blood sugar?',o:['It makes people eat less.','Muscles use sugar from the blood as fuel.','It helps people sleep better.','It slows down digestion.'],a:1,w:'"they use sugar from the blood as fuel" 그대로.'},
+  {q:'Why do experts advise moving soon after a meal?',o:['Blood sugar usually peaks within about an hour.','Muscles are weakest in the evening.','Walking is easier on an empty stomach.','Offices close soon after lunch.'],a:0,w:'"so experts often advise" 앞 문장이 이유입니다.'},
+  {q:'In the context of the passage, measurable means ___.',o:['noticeable','expensive','temporary','uncertain'],a:0,w:'측정할 수 있을 만큼의 차이 = 눈에 띄는 차이.'},
+  {q:'In the context of the passage, intense means ___.',o:['strenuous','brief','regular','quiet'],a:0,w:'뒤에 "A slow walk ... can all help" → 격렬할 필요 없다 = strenuous.'}]},
+ {title:'Part 3 · 아홀로틀',tip:'백과사전은 정의 → 특징 → 이름 유래 → 현황. NOT 문제는 보기 4개를 본문에서 하나씩 지워 나가세요.',paras:[
+  '<b>AXOLOTL</b>',
+  'The axolotl is a type of salamander native to the lake system around Mexico City. Unlike most amphibians, which change from water-living larvae into land-living adults, axolotls usually remain in the water for their entire lives.',
+  'This unusual condition is called neoteny. Adult axolotls keep many of their juvenile features, including feathery external gills that stick out from the sides of their heads. They typically grow to about 23 centimeters in length and can be found in several colors, from dark brown to pale pink.',
+  'Axolotls are famous among scientists for their <mark>remarkable</mark> ability to regenerate lost body parts. They can regrow not only limbs and tails but also parts of the heart, spinal cord, and even the brain, often without leaving scars. Because of this, they are widely studied in medical research that aims to help humans recover from injuries.',
+  'The name "axolotl" comes from Nahuatl, the language of the Aztecs, and is often linked to Xolotl, a god associated with fire and lightning.',
+  'Although axolotls are common in laboratories and as pets, they are critically endangered in the wild. Their natural habitat has <mark>shrunk</mark> as Mexico City expanded, and the remaining canals suffer from water pollution. In addition, introduced fish such as carp and tilapia compete with axolotls for food and eat their young. Local conservation groups are now working with farmers to create protected areas in the canals of Xochimilco.'],
+  qs:[
+  {q:'How are axolotls different from most amphibians?',o:['They live only on land.','They usually stay in the water as adults.','They have no gills.','They lay their eggs in trees.'],a:1,w:'"Unlike most amphibians" 뒤가 차이점입니다.'},
+  {q:'What is neoteny?',o:['keeping juvenile features into adulthood','changing color with the seasons','living in salt water','growing new limbs'],a:0,w:'regrow limbs는 재생 능력이지 neoteny가 아닙니다.'},
+  {q:'Why are axolotls important in medical research?',o:['They are easy to feed.','They can regenerate lost body parts.','They live for a very long time.','They never get sick.'],a:1},
+  {q:'Which is NOT mentioned as a threat to wild axolotls?',o:['the loss of their habitat','water pollution','fish introduced from elsewhere','droughts caused by climate change'],a:3,w:'habitat shrunk, pollution, carp·tilapia는 모두 본문에 있습니다. 가뭄은 없습니다.'},
+  {q:'In the context of the passage, remarkable means ___.',o:['extraordinary','common','dangerous','recent'],a:0},
+  {q:'In the context of the passage, shrunk means ___.',o:['decreased','moved','flooded','improved'],a:0,w:'도시가 커지면서(expanded) 서식지가 줄었다 = decreased.'}]},
+ {title:'Part 4 · 호텔 예약 편지',tip:'비즈니스 편지는 1문단에 목적, 중간에 세부 조건, 끝에 요청과 연락처. 목적 문제는 "I am writing to" 문장으로.',paras:[
+  '<span class="mono" style="font-size:13px">Ms. Hannah Brooks<br>Event Coordinator<br>Northfield Software Inc.<br>45 Lake Avenue, Denver, CO</span>',
+  'Dear Ms. Brooks:',
+  'Thank you for choosing the Summit Ridge Hotel for Northfield Software\'s annual sales conference. I am writing to confirm the details of your reservation and to explain the next steps.',
+  'As discussed, we have reserved our Grand Ballroom for April 14 and 15, along with 85 guest rooms for the nights of April 13 and 14. The package includes breakfast for all guests, two coffee breaks per day, and a buffet lunch on both days. Our technical team will provide projectors, microphones, and high-speed internet in the ballroom at no additional cost.',
+  'To <mark>secure</mark> the reservation, a deposit of 30 percent of the total cost is required by March 1. Please note that if the deposit is not received by this date, we may release the rooms to other guests, as April is one of our busiest months.',
+  'We would also appreciate it if you could send us a final list of attendees, including any dietary requirements, at least two weeks before the event. This will allow our kitchen staff to prepare <mark>suitable</mark> meals for everyone.',
+  'If you have any questions or would like to arrange a tour of the facilities, please do not hesitate to contact me at 303-555-0182.',
+  'Sincerely,<br>Daniel Ortiz<br>Sales Manager, Summit Ridge Hotel'],
+  qs:[
+  {q:'Why did Daniel Ortiz write to Ms. Brooks?',o:['to invite her to a sales conference','to confirm a reservation and explain the next steps','to apologize for a booking error','to offer her a position at the hotel'],a:1,w:'"I am writing to confirm ... and to explain the next steps".'},
+  {q:'What does the hotel provide at no additional cost?',o:['dinner on both nights','technical equipment in the ballroom','a guided tour of the city','airport transportation'],a:1,w:'"at no additional cost" = 추가 요금 없음. 질문 표현이 본문과 같을 때는 바로 그 문장.'},
+  {q:'What may happen if the deposit is not received by March 1?',o:['The price will increase.','The rooms may be given to other guests.','The conference will be moved to May.','The ballroom will be closed.'],a:1,w:'release the rooms to other guests → given to other guests.'},
+  {q:'Why does the hotel want the list of attendees two weeks in advance?',o:['to print name tags','to prepare appropriate meals','to assign parking spaces','to send invitations'],a:1},
+  {q:'In the context of the passage, secure means ___.',o:['guarantee','protect','relax','hide'],a:0,w:'"보호하다"(protect)가 사전 뜻이지만, 예약을 secure = 확정하다 = guarantee. 문맥 뜻을 묻는 대표 함정.'},
+  {q:'In the context of the passage, suitable means ___.',o:['appropriate','expensive','quick','simple'],a:0}]}
+];
+let rIdx=0;
+function rBuild(){
+  $('#rFilters').innerHTML=RS.map((s,i)=>`<button class="chip" data-i="${i}" aria-pressed="${i===rIdx}">${s.title}</button>`).join('');
+  document.querySelectorAll('#rFilters .chip').forEach(c=>c.onclick=()=>{rIdx=+c.dataset.i;rBuild();});
+  const s=RS[rIdx];
+  $('#rTip').innerHTML=`<b>이 파트</b> ${s.tip}`;
+  $('#passage').innerHTML=s.paras.map(p=>`<p>${p}</p>`).join('');
+  renderSet($('#rBox'),s.qs,true);
+}
+
+/* ---------- vocab: [단어, 뜻, 동의어, 예문] ---------- */
+const V=[
+ ['crucial','매우 중요한','essential','Getting enough sleep is crucial for good health.'],
+ ['acquire','얻다, 습득하다','obtain','He acquired valuable skills during his internship.'],
+ ['renowned','유명한','famous','The chef is renowned for her creative desserts.'],
+ ['diminish','줄어들다','decrease','The pain began to diminish after a few hours.'],
+ ['prompt','유발하다','cause','The heavy rain prompted officials to close the road.'],
+ ['sustain','유지하다','maintain','It is hard to sustain energy during a long meeting.'],
+ ['abandon','버리다, 포기하다','give up','The crew had to abandon the sinking ship.'],
+ ['eventually','결국','finally','After many failures, he eventually succeeded.'],
+ ['notable','주목할 만한','remarkable','The city is notable for its beautiful old bridges.'],
+ ['reluctant','꺼리는','unwilling','He was reluctant to speak in front of the crowd.'],
+ ['vital','필수적인','necessary','Water is vital for all living things.'],
+ ['alter','바꾸다','change','The tailor altered the length of my pants.'],
+ ['demonstrate','보여주다, 입증하다','show','The study demonstrates the benefits of regular exercise.'],
+ ['abundant','풍부한','plentiful','The region has abundant natural resources.'],
+ ['pursue','추구하다','seek','She moved to New York to pursue a career in music.'],
+ ['inhabit','~에 살다','live in','Many rare birds inhabit this small island.'],
+ ['comprehensive','포괄적인','thorough','The report gives a comprehensive overview of the market.'],
+ ['consistent','일관된','steady','Consistent practice is the key to improvement.'],
+ ['deem','~로 여기다','consider','The bridge was deemed unsafe after the earthquake.'],
+ ['emerge','나타나다','appear','A new leader emerged during the crisis.'],
+ ['endure','견디다','withstand','These plants can endure extremely cold winters.'],
+ ['exceed','초과하다','surpass','Sales exceeded our expectations this year.'],
+ ['feasible','실현 가능한','possible','The engineers said the plan was not feasible.'],
+ ['hinder','방해하다','obstruct','Heavy snow hindered the rescue efforts.'],
+ ['inevitable','피할 수 없는','unavoidable','Some mistakes are inevitable when you learn something new.'],
+ ['meticulous','꼼꼼한','careful','She is meticulous about checking every detail.'],
+ ['prominent','저명한','leading','He became a prominent figure in modern art.'],
+ ['subsequent','그 다음의','following','The subsequent meeting was held in Paris.'],
+ ['undergo','겪다','experience','The building will undergo major repairs next year.'],
+ ['yield','산출하다','produce','The farm yields over ten tons of rice a year.'],
+ ['accommodate','수용하다','hold','The hall can accommodate up to 500 people.'],
+ ['compensate','보상하다','make up for','The airline will compensate passengers for the delay.'],
+ ['doubt','의심하다','question','Many experts doubted the new theory at first.'],
+ ['curiosity','호기심','interest','Her curiosity led her to study science.'],
+ ['assess','평가하다','evaluate','Teachers assess their students\' progress every month.'],
+ ['adequate','충분한','sufficient','The room has adequate space for ten people.']
+];
+let vMode='all',vList=[],vI=0,vFlip=false,vLooping=false;
+const vCur=()=>vList[vI%vList.length];
+const vRate=()=>+(($('#vRate')||{}).value||0.9);
+function vBuild(){
+  const unk=V.filter(x=>!S.known[x[0]]).length;
+  $('#vFilters').innerHTML=`<button class="chip" data-m="all" aria-pressed="${vMode==='all'}">전체 ${V.length}</button><button class="chip" data-m="unk" aria-pressed="${vMode==='unk'}">아직 모름 ${unk}</button>`;
+  document.querySelectorAll('#vFilters .chip').forEach(c=>c.onclick=()=>{stopAudio();vMode=c.dataset.m;vReset();});
+  $('#vCount').textContent=`외운 단어 ${V.length-unk} / ${V.length}`;
+}
+function vReset(){vList=shuffle(rng(Date.now()%100000),V.filter(x=>vMode==='all'||!S.known[x[0]]));vI=0;vFlip=false;vBuild();vRender();}
+function vRender(){
+  const c=$('#vCard');
+  if(!vList.length){c.innerHTML='<div class="m">모르는 단어가 없습니다. 전체 모드로 복습하세요.</div>';return;}
+  const [w,m,s,ex]=vCur();
+  const stem=w.slice(0,Math.max(4,w.length-2));
+  const exh=esc(ex).replace(new RegExp('\\b('+stem+'\\w*)','i'),'<mark>$1</mark>');
+  c.innerHTML=`<div class="hint mono">${(vI%vList.length)+1} / ${vList.length}</div><div class="w">${w}</div>`+
+    (vFlip?`<div class="m">${m}</div><div class="s">= ${s}</div><div class="ex">${exh}</div>`:'<div class="hint">눌러서 뜻 보기</div>');
+}
+function vLoopBtn(){const b=$('#vLoop');if(b){b.textContent=vLooping?'■ 연속 듣기 정지':'▶ 연속 듣기';b.setAttribute('aria-pressed',vLooping);}}
+function vNoTTS(c){$('#vStatus').textContent=ttsHelp(c||'unsupported');}
+function vTTSParts(withKo){const [w,m,s,ex]=vCur(),r=vRate(),p=[{t:w,rate:r*0.9}];if(withKo&&koVoice())p.push({t:m,lang:'ko-KR',rate:1});p.push({t:s,rate:r},{t:ex,rate:r});return p;}
+function vPlayCard(done,fail){
+  if(!vList.length)return;
+  const ko=()=>{if(S.vKo&&koVoice())speakSeq([{t:vCur()[1],lang:'ko-KR',rate:1}],done,()=>done&&done());else done&&done();};
+  playFile('audio/v_'+vCur()[0]+'.mp3',{rate:vRate()/0.9,onend:ko,onfail:c=>{if(c==='not-allowed'){fail&&fail(c);return;}speakSeq(vTTSParts(S.vKo),done,fail);}});
+}
+function vSayWord(){vPlayCard(null,vNoTTS);}
+function vPlayLoop(){
+  if(!vList.length||!vLooping)return;
+  vFlip=true;vRender();
+  vPlayCard(()=>{setTimeout(()=>{if(!vLooping)return;vI++;vPlayLoop();},900);},c=>{vLooping=false;vLoopBtn();vNoTTS(c);});
+}
+function vMove(k){
+  if(!vList.length)return;
+  const wasLoop=vLooping;stopAudio();
+  if(k!==null){S.known[vCur()[0]]=k;save();}
+  vI++;vFlip=false;vBuild();vRender();
+  if(wasLoop){vLooping=true;vLoopBtn();vPlayLoop();}
+  else if(S.vAuto)vSayWord();
+}
+$('#vCard').onclick=()=>{vFlip=!vFlip;vRender();};
+$('#vCard').onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();vFlip=!vFlip;vRender();}};
+$('#vKnown').onclick=()=>vMove(true);$('#vUnknown').onclick=()=>vMove(false);
+$('#vSay').onclick=()=>{const was=vLooping;stopAudio();if(!was)vSayWord();};
+$('#vLoop').onclick=()=>{if(vLooping){stopAudio();return;}vLooping=true;vLoopBtn();vPlayLoop();};
+$('#vAuto').checked=!!S.vAuto;$('#vKo').checked=!!S.vKo;
+$('#vAuto').onchange=e=>{S.vAuto=e.target.checked;save();};
+$('#vKo').onchange=e=>{S.vKo=e.target.checked;save();if(e.target.checked&&!koVoice())$('#vStatus').textContent='이 기기에는 한국어 음성이 없어 영어만 읽습니다.';};
+
+/* ---------- sync across devices (db: data/users/<id>/progress) ---------- */
+const SYNC_KEYS=['start','done','wrong','known','gres','vAuto','vKo'];
+let syncRef=null,pushTimer=null,pushing=false,pushAgain=false;
+function syncStat(t){const el=$('#syncStat');if(el)el.textContent=t;}
+function pickSynced(){const o={};SYNC_KEYS.forEach(k=>o[k]=S[k]);return JSON.parse(JSON.stringify(o));}
+function mergeState(a,b){
+  const m=JSON.parse(JSON.stringify(a));
+  if(b.start&&(!m.start||b.start<m.start))m.start=b.start;
+  m.done=Object.assign({},b.done||{},m.done||{});for(const k in b.done||{})if(b.done[k])m.done[k]=true;
+  m.wrong=Object.assign({},b.wrong||{},m.wrong||{});
+  m.known=Object.assign({},b.known||{},m.known||{});for(const k in b.known||{})if(b.known[k])m.known[k]=true;
+  m.gres=Object.assign({},b.gres||{},m.gres||{});for(const k in b.gres||{})if(!m.gres[k]||b.gres[k].r>m.gres[k].r)m.gres[k]=b.gres[k];
+  return m;
+}
+function applyState(st,ts){
+  SYNC_KEYS.forEach(k=>{if(st[k]!==undefined)S[k]=st[k];});
+  S.ts=ts;saveLocal();
+  renderPlan();gBuild();vBuild();
+  $('#vAuto').checked=!!S.vAuto;$('#vKo').checked=!!S.vKo;
+}
+function schedulePush(){if(!syncRef)return;clearTimeout(pushTimer);pushTimer=setTimeout(push,1500);}
+async function push(){
+  if(!syncRef)return;
+  if(pushing){pushAgain=true;return;}
+  pushing=true;syncStat('동기화 중…');
+  try{await syncRef.set({ts:S.ts,state:pickSynced()});syncStat('동기화됨 '+new Date().toTimeString().slice(0,5));}
+  catch(e){syncStat(e&&e.code==='quota_exceeded'?'저장 공간 부족: 이 기기에만 저장':'동기화 실패: 이 기기에만 저장');}
+  pushing=false;
+  if(pushAgain){pushAgain=false;push();}
+}
+async function initSync(){
+  let c=null;
+  for(let i=0;i<20&&!(c=window.claude)?.use;i++)await new Promise(r=>setTimeout(r,250));
+  if(!c||!c.use){syncStat('이 기기에만 저장');return;}
+  syncStat('동기화 연결 중…');
+  const timer=setTimeout(()=>syncStat('연결 안 됨: 이 기기에만 저장'),10000);
+  try{
+    const [user,db]=await Promise.all([c.use('user'),c.use('db')]);
+    const id=user&&await user.id();
+    if(!db||!id){clearTimeout(timer);syncStat('이 기기에만 저장 (로그인하면 동기화)');return;}
+    const ref=db.doc('data/users/'+id+'/progress');
+    ref.onSnapshot(snap=>{
+      if(snap.metadata.hasPendingWrites)return;
+      clearTimeout(timer);
+      const r=snap.exists?snap.data():null;
+      if(!syncRef){
+        syncRef=ref;
+        if(!S.synced){
+          if(r&&r.state){const m=mergeState(pickSynced(),r.state);S.synced=true;applyState(m,Date.now());}
+          else{S.synced=true;S.ts=S.ts||Date.now();saveLocal();}
+          push();return;
+        }
+      }
+      if(r&&r.ts>(S.ts||0)){applyState(r.state,r.ts);syncStat('다른 기기 기록 반영 '+new Date().toTimeString().slice(0,5));}
+      else if(!r||r.ts<(S.ts||0))push();
+      else syncStat('동기화됨');
+    },()=>{clearTimeout(timer);syncStat('동기화 끊김: 이 기기에만 저장');});
+  }catch(e){clearTimeout(timer);syncStat('이 기기에만 저장');}
+}
+
+/* ---------- backup export / import ---------- */
+function bStat(t){$('#bStat').textContent=t;}
+function backupText(){return JSON.stringify({app:'gtelp70',v:1,exported:new Date().toISOString(),state:pickSynced()});}
+async function exportBackup(){
+  const fn=`gtelp70-backup-${todayStr()}.json`,data=backupText();
+  let dl=null;try{dl=window.claude&&window.claude.use?await window.claude.use('downloads'):null;}catch(e){}
+  if(dl){
+    try{await dl.save({filename:fn,data});bStat('파일로 저장했습니다: '+fn);return;}
+    catch(e){if(e&&e.code==='declined'){bStat('저장을 취소했습니다.');return;}}
+  }
+  if(!window.claude){try{const u=URL.createObjectURL(new Blob([data],{type:'application/json'}));const a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);bStat('파일로 저장했습니다: '+fn+' (다운로드 폴더)');return;}catch(e){}}
+  $('#bText').value=data;$('#bFallback').hidden=false;
+  bStat('이 화면에서는 파일 저장이 안 됩니다. 아래 내용을 복사해 메모장이나 카톡 나에게 보내기에 붙여 두세요.');
+}
+function importBackup(text){
+  let obj;try{obj=JSON.parse(text);}catch(e){bStat('기록 형식이 아닙니다. 내보내기로 만든 내용 전체를 넣어 주세요.');return;}
+  const st=obj&&obj.state;
+  if(!st||typeof st!=='object'||!('done' in st)){bStat('지텔프 트레이너 기록이 아닙니다.');return;}
+  const m=mergeState(pickSynced(),st);
+  applyState(m,Date.now());save();gBuild();
+  const nd=Object.values(S.done).filter(Boolean).length,nw=Object.keys(S.wrong).length,nk=Object.values(S.known).filter(Boolean).length;
+  bStat(`가져와서 지금 기록과 합쳤습니다. 완료 ${nd}일 · 오답 ${nw}개 · 외운 단어 ${nk}개`);
+}
+$('#bExport').onclick=exportBackup;
+$('#bImport').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>importBackup(String(r.result));r.onerror=()=>bStat('파일을 읽지 못했습니다.');r.readAsText(f);e.target.value='';};
+$('#bPasteBtn').onclick=()=>{$('#bFallback').hidden=false;const t=$('#bText').value.trim();if(!t||t===backupText()){$('#bText').value='';$('#bText').focus();bStat('복사해 둔 기록을 아래 칸에 붙여 넣고 다시 누르세요.');return;}importBackup(t);};
+$('#bCopy').onclick=()=>{const t=$('#bText');const ok=()=>bStat('복사했습니다.');
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t.value).then(ok,()=>{t.select();bStat('전체 선택했습니다. 길게 눌러 복사하세요.');});else{t.select();bStat('전체 선택했습니다. 길게 눌러 복사하세요.');}};
+
+/* ---------- boot ---------- */
+calc();renderPlan();gMigrate();gLoad();lBuild();rBuild();vReset();showTab(S.tab);initSync();
+</script>
+
+</body></html>
